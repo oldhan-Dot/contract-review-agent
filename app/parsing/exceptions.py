@@ -3,7 +3,12 @@
 from typing import Literal
 
 BlockReason = Literal[
-    "ATTACHMENT_MISSING", "ATTACHMENT_CORRUPT", "ENCRYPTED_FILE", "EMPTY_BODY", "PARSE_ERROR"
+    "ATTACHMENT_MISSING",
+    "ATTACHMENT_CORRUPT",
+    "ENCRYPTED_FILE",
+    "EMPTY_BODY",
+    "PARSE_ERROR",
+    "UNSUPPORTED_FORMAT",
 ]
 
 

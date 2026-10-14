@@ -34,10 +34,10 @@ def test_nodes_run_in_order_and_receive_prior_updates():
     assert result["review_version"] == 1
 
 
-def test_default_graph_stops_at_unimplemented_parser():
-    # 默认编译应成功，执行时明确失败，不能把占位流程伪装成审查完成。
-    graph = build_review_graph()
-    with pytest.raises(NodeNotImplementedError, match="parse_document"):
+def test_graph_stops_at_next_unimplemented_node():
+    # 解析节点已有真实实现；本测试替换解析，确认尚未实现的结构化节点明确中止。
+    graph = build_review_graph(ReviewNodes(parse_document=lambda state: {}))
+    with pytest.raises(NodeNotImplementedError, match="structure_document"):
         graph.invoke({"task_id": 1, "file_id": 2, "review_version": 1})
 
 

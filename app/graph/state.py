@@ -2,6 +2,8 @@
 
 from typing import NotRequired, TypedDict
 
+from app.parsing.ir import ParsedDocument
+
 
 class ReviewState(TypedDict):
     # 三个必填字段定位本次执行，不把数据库 Session 或上传文件句柄放进状态。
@@ -10,7 +12,8 @@ class ReviewState(TypedDict):
     review_version: int
 
     # 节点只需返回自己更新的字段，LangGraph 会合并到共享状态。
-    # 解析 IR、条款和风险的结构会随对应模块实现加入，避免提前写死其格式。
+    # 解析节点生成统一 IR，后续条款与风险结构随对应模块加入。
+    document: NotRequired[ParsedDocument]
     review_summary: NotRequired[str]
     review_degraded: NotRequired[bool]
     review_degraded_reason: NotRequired[str | None]

@@ -17,7 +17,7 @@ flowchart LR
 | 文件 | 用途 |
 |---|---|
 | `app/graph/state.py` | `ReviewState`：在节点之间传递任务 ID、文件 ID、审查版本以及逐步增加的处理结果 |
-| `app/graph/nodes/` | 每个业务节点独立一个 Python 文件，`__init__.py` 集中导出函数 |
+| `app/graph/nodes/` | 每个业务节点独立一个 Python 文件，`__init__.py` 集中导出函数；解析节点已在模块 07 接入 |
 | `app/graph/errors.py` | 节点共用的异常定义 |
 | `app/graph/review_graph.py` | 注册节点、定义边、编译图；通过 `ReviewNodes` 替换节点实现 |
 | `tests/unit/test_review_graph.py` | 用真实 LangGraph 验证顺序执行、状态合并、异常中止 |
@@ -33,11 +33,11 @@ graph = build_review_graph()
 # 可以查看图结构，compile 本身不会处理合同。
 print(graph.get_graph().draw_mermaid())
 
-# 当前会明确抛出 NodeNotImplementedError，提示解析节点尚未实现。
+# 使用实际任务和文件标识可执行解析；之后结构化节点仍会抛出 NodeNotImplementedError。
 graph.invoke({"task_id": 1, "file_id": 1, "review_version": 1})
 ```
 
-五个默认节点都是明确抛错的占位函数，没有真实解析或审查能力。测试注入独立处理函数验证框架，不把测试结果作为真实审查结果。`START`、`END` 是图的执行标记，进入 `END` 不会自动修改数据库任务状态。
+框架初始阶段五个默认节点都是明确抛错的占位函数；模块 07 已接入真实解析节点，其余四个节点仍待实现。测试注入独立处理函数验证框架，不把测试结果作为真实审查结果。`START`、`END` 是图的执行标记，进入 `END` 不会自动修改数据库任务状态。
 
 ## 与原技术方案的调整
 
