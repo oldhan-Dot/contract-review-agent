@@ -1,0 +1,159 @@
+"""真实 MySQL 与临时目录共同验证上传结果，测试后不保留任务或文件。"""
+
+from io import BytesIO
+from types import SimpleNamespace
+from uuid import uuid4
+
+import pytest
+from docx import Document
+from fastapi.testclient import TestClient
+from sqlalchemy import select
+
+from app.api import tasks
+from app.core.db import get_db
+from app.models import AppUser, ContractFile, ContractTask
+
+pytestmark = pytest.mark.integration
+
+
+@pytest.fixture
+def upload_client(api_app, factory, tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        tasks,
+        "get_settings",
+        lambda: SimpleNamespace(storage_path=tmp_path, max_upload_mb=50),
+    )
+
+    def test_db():
+        with factory() as session:
+            yield session
+
+    api_app.dependency_overrides[get_db] = test_db
+    with factory() as session:
+        user = AppUser(
+            username=f"upload-{uuid4().hex}",
+            display_name="上传测试用户",
+            role_code="BIZ",
+            is_active=True,
+        )
+        session.add(user)
+        session.commit()
+        user_id = user.id
+    with TestClient(api_app) as client:
+        yield client, factory, tmp_path, user_id
+
+
+def docx_bytes():
+    document = Document()
+    document.add_paragraph("采购合同测试正文")
+    stream = BytesIO()
+    document.save(stream)
+    return stream.getvalue()
+
+
+def send(client, user_id, content, filename="合同.docx", **fields):
+    return client.post(
+        "/api/tasks/upload",
+        headers={"X-User-Id": str(user_id), "X-User-Role": "BIZ"},
+        data={"contract_name": "测试采购合同", "contract_type": "PURCHASE", **fields},
+        files={"file": (filename, content, "application/octet-stream")},
+    )
+
+
+def test_valid_upload_and_duplicate_reuse(upload_client):
+    client, factory, root, user_id = upload_client
+    content = docx_bytes()
+    first = send(client, user_id, content, amount="12.50")
+    assert first.status_code == 201, first.text
+    created = first.json()["data"]
+    assert created["status"] == "pending" and created["duplicated"] is False
+
+    with factory() as session:
+        task = session.get(ContractTask, created["task_id"])
+        file = session.scalar(select(ContractFile).where(ContractFile.task_id == task.id))
+        assert task.contract_name == "测试采购合同"
+        assert task.applicant_id == user_id
+        assert str(task.amount) == "12.50"
+        assert file.file_size == len(content)
+        assert file.original_name == "合同.docx"
+        assert (root / "uploads" / str(task.id) / f"{task.id}_1.docx").read_bytes() == content
+
+    second = send(client, user_id, content)
+    assert second.status_code == 201
+    assert second.json()["data"]["task_id"] == created["task_id"]
+    assert second.json()["data"]["duplicated"] is True
+    with factory() as session:
+        assert (
+            len(
+                session.scalars(
+                    select(ContractTask).where(ContractTask.applicant_id == user_id)
+                ).all()
+            )
+            == 1
+        )
+
+
+@pytest.mark.parametrize(
+    ("filename", "content", "fields", "http_status", "code"),
+    [
+        ("contract.exe", b"x" * 2048, {}, 415, 41501),
+        ("contract.docx", b"not a docx" * 200, {}, 415, 41501),
+        ("contract.docx", b"", {}, 400, 40001),
+        ("contract.docx", b"x" * (50 * 1024 * 1024 + 1), {}, 413, 41301),
+        ("contract.docx", b"x" * 2048, {"contract_name": "   "}, 400, 40001),
+    ],
+    ids=["unsupported-extension", "fake-docx", "empty", "over-limit", "blank-name"],
+)
+def test_invalid_upload_creates_nothing(
+    upload_client, filename, content, fields, http_status, code
+):
+    client, factory, root, user_id = upload_client
+    response = send(client, user_id, content, filename, **fields)
+    assert response.status_code == http_status
+    assert response.json()["code"] == code
+    with factory() as session:
+        assert (
+            session.scalar(select(ContractTask.id).where(ContractTask.applicant_id == user_id))
+            is None
+        )
+    if (root / "uploads").exists():
+        assert list((root / "uploads").rglob("*.docx")) == []
+
+
+def test_commit_failure_rolls_back_and_removes_file(upload_client, monkeypatch):
+    client, factory, root, user_id = upload_client
+
+    def fail_commit(session):
+        raise RuntimeError("模拟数据库提交失败")
+
+    # 用户已在 fixture 中准备完毕；仅让本次上传的提交失败。
+    monkeypatch.setattr(factory.class_, "commit", fail_commit)
+    with pytest.raises(RuntimeError, match="模拟数据库提交失败"):
+        send(client, user_id, docx_bytes())
+    with factory() as session:
+        assert (
+            session.scalar(select(ContractTask.id).where(ContractTask.applicant_id == user_id))
+            is None
+        )
+    assert list((root / "uploads").iterdir()) == []
+
+
+def test_different_applicants_do_not_share_task(upload_client):
+    client, factory, _, user_id = upload_client
+    content = docx_bytes()
+    first = send(client, user_id, content)
+    assert first.status_code == 201
+    with factory() as session:
+        other = AppUser(
+            username=f"other-{uuid4().hex}",
+            display_name="其他申请人",
+            role_code="BIZ",
+            is_active=True,
+        )
+        session.add(other)
+        session.commit()
+        other_id = other.id
+    second = send(client, other_id, content)
+    assert second.status_code == 201
+    assert second.json()["data"]["duplicated"] is False
+    assert second.json()["data"]["task_id"] != first.json()["data"]["task_id"]

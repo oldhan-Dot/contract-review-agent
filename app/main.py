@@ -5,8 +5,11 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.concurrency import run_in_threadpool
 
+from app.api.tasks import router as tasks_router
+from app.api.users import router as users_router
 from app.core.config import get_settings
 from app.core.db import get_engine
+from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
 from app.health import check_db, health_report
 
@@ -29,6 +32,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="合同审批审查系统 · 环境骨架", version="0.1.0", lifespan=lifespan)
+register_error_handlers(app)
+app.include_router(users_router)
+app.include_router(tasks_router)
 
 
 @app.get("/api/health", tags=["环境检查"])

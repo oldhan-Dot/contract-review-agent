@@ -1,0 +1,1232 @@
+{
+  "version": "2.21",
+  "children": [
+    {
+      "type": "frame",
+      "id": "o7c9n",
+      "x": -1105,
+      "y": -394,
+      "name": "智能审查工作台",
+      "clip": true,
+      "width": 1440,
+      "height": 1080,
+      "fill": "#F3F5F8",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "vf25R",
+          "name": "全局导航",
+          "width": "fill_container",
+          "height": 64,
+          "fill": "#FFFFFF",
+          "stroke": "#E1E7EF",
+          "strokeWidth": {
+            "bottom": 1
+          },
+          "gap": 28,
+          "padding": [
+            0,
+            32
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "y055kZ",
+              "name": "系统品牌",
+              "gap": 10,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "pCiTx",
+                  "name": "合同图标",
+                  "width": 24,
+                  "height": 24,
+                  "icon": "file-text",
+                  "library": "lucide",
+                  "fill": "#2563EB"
+                },
+                {
+                  "type": "text",
+                  "id": "IHrCG",
+                  "name": "系统名称",
+                  "fill": "#192D45",
+                  "content": "合同审批审查系统",
+                  "fontFamily": "Noto Serif SC",
+                  "fontSize": 19,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "tMSan",
+              "name": "审查大盘",
+              "fill": "#192D45",
+              "content": "审查大盘",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "eNr3G",
+              "name": "审查工作台",
+              "fill": "#2563EB",
+              "content": "审查工作台",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 14,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "nXPv0",
+              "name": "规则与模板",
+              "fill": "#192D45",
+              "content": "规则与模板",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "gfUbv",
+              "name": "导航弹性间隔",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "W1nk0",
+              "name": "当前用户角色",
+              "fill": "#63748D",
+              "content": "法务审查人  ⌄",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 13,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "AGXSu",
+          "name": "工作台内容",
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 20,
+          "padding": [
+            24,
+            32
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "cU60O",
+              "name": "页面位置",
+              "fill": "#63748D",
+              "content": "审查大盘  /  智能审查工作台",
+              "fontFamily": "Noto Serif SC",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "uySQw",
+              "name": "合同信息",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "x5Ed8S",
+                  "name": "标题及操作",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "xP2Nq",
+                      "name": "标题和状态",
+                      "gap": 14,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "H3Pl7",
+                          "name": "合同名称",
+                          "fill": "#192D45",
+                          "content": "技术采购合同",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 26,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "iC8XY",
+                          "name": "任务编号",
+                          "fill": "#63748D",
+                          "content": "CR20261014000001",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "RlQJx",
+                          "name": "审查完成状态",
+                          "fill": "#E1F5EC",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Cg3pX",
+                              "name": "审查完成标签",
+                              "fill": "#14785D",
+                              "content": "审查完成",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "bergQ",
+                          "name": "高风险状态",
+                          "fill": "#FCE8E8",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Zst2l",
+                              "name": "高风险标签",
+                              "fill": "#C43737",
+                              "content": "高风险",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "wwWZP",
+                          "name": "未回写状态",
+                          "fill": "#E9EDF3",
+                          "cornerRadius": 4,
+                          "padding": [
+                            5,
+                            10
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "d2y49",
+                              "name": "未回写标签",
+                              "fill": "#63748D",
+                              "content": "未回写",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "kiS5r",
+                      "name": "任务操作",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "b2K2S",
+                          "name": "重新审查",
+                          "height": 36,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 6,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "bsKHH",
+                              "name": "重新审查标签",
+                              "fill": "#192D45",
+                              "content": "重新审查",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UIdLK",
+                          "name": "导出报告",
+                          "height": 36,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 6,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "W4gca",
+                              "name": "导出报告标签",
+                              "fill": "#192D45",
+                              "content": "导出报告",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "m0LRjr",
+                  "name": "合同摘要",
+                  "fill": "#63748D",
+                  "content": "申请人：王明    ·    采购部    ·    合同金额：¥ 480,000.00    ·    我方：甲方",
+                  "fontFamily": "Noto Serif SC",
+                  "fontSize": 13,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Iw7dV",
+              "name": "原文和审查结果",
+              "width": "fill_container",
+              "height": "fill_container",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ZbiOH",
+                  "name": "合同原文面板",
+                  "width": 736,
+                  "height": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 8,
+                  "stroke": "#E1E7EF",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "XSQ99",
+                      "name": "原文工具栏",
+                      "width": "fill_container",
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "p7NgeA",
+                          "name": "原文标题",
+                          "fill": "#192D45",
+                          "content": "合同原文",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 18,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "dlPY4",
+                          "name": "翻页和缩放",
+                          "fill": "#63748D",
+                          "content": "‹      7 / 12      ›        100%",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "b0KUkl",
+                      "name": "文档画布",
+                      "width": "fill_container",
+                      "height": "fill_container",
+                      "fill": "#E8EDF3",
+                      "cornerRadius": 4,
+                      "layout": "vertical",
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "YtHiO",
+                          "name": "合同第七页",
+                          "width": "fill_container",
+                          "fill": "#FFFFFF",
+                          "layout": "vertical",
+                          "gap": 14,
+                          "padding": 28,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "omfNM",
+                              "name": "正文标题",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "技术采购合同",
+                              "lineHeight": 1.7,
+                              "textAlign": "center",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 22,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "KDwpj",
+                              "name": "知识产权章节",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "第十一条  知识产权",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Qu92I",
+                              "name": "条款11.1",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "11.1  本项目涉及的软件产品、文档及相关技术成果，其知识产权归属由双方按本合同约定执行。",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "rJ6xX",
+                              "name": "高风险原文定位",
+                              "width": "fill_container",
+                              "fill": "#FCE8E8",
+                              "cornerRadius": 3,
+                              "stroke": "#D84A4A",
+                              "strokeWidth": {
+                                "left": 4
+                              },
+                              "layout": "vertical",
+                              "padding": [
+                                8,
+                                12
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "sptC8",
+                                  "name": "条款11.2高亮",
+                                  "fill": "#C43737",
+                                  "textGrowth": "fixed-width",
+                                  "width": "fill_container",
+                                  "content": "11.2  本项目产生的全部知识产权归乙方所有。",
+                                  "lineHeight": 1.7,
+                                  "fontFamily": "Noto Serif SC",
+                                  "fontSize": 14,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "yZcdQ",
+                              "name": "条款11.3",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "11.3  乙方应提供完整的技术文档、使用手册和源代码（如适用），确保甲方能够正常使用、维护和二次开发。",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "c43VY4",
+                              "name": "条款11.4",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "11.4  乙方保证交付成果不侵犯第三方知识产权，并承担相应责任。",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "oBS6g",
+                              "name": "保密章节",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "第十二条  保密义务",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 16,
+                              "fontWeight": "600"
+                            },
+                            {
+                              "type": "text",
+                              "id": "hVlq3",
+                              "name": "条款12.1",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "12.1  双方应对履约过程中知悉的商业秘密、技术信息及其他未公开信息予以保密，未经对方书面同意不得向第三方披露。",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "fPz4n",
+                      "name": "折叠元数据",
+                      "fill": "#192D45",
+                      "content": "›   合同元数据",
+                      "fontFamily": "Noto Serif SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "NzRnV",
+                  "name": "风险与修改建议",
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 8,
+                  "stroke": "#E1E7EF",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "padding": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Q0mIE",
+                      "name": "建议面板标题",
+                      "fill": "#192D45",
+                      "content": "风险与修改建议",
+                      "fontFamily": "Noto Serif SC",
+                      "fontSize": 18,
+                      "fontWeight": "600"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "e5957",
+                      "name": "风险等级筛选",
+                      "width": "fill_container",
+                      "height": 34,
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "AWQ7Q",
+                          "name": "全部 6",
+                          "height": 34,
+                          "fill": "#2563EB",
+                          "cornerRadius": 5,
+                          "stroke": "#2563EB",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "k5UHP",
+                              "name": "全部 6文字",
+                              "fill": "#FFFFFF",
+                              "content": "全部 6",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "VIOjn",
+                          "name": "高风险 4",
+                          "height": 34,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 5,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "KbYjj",
+                              "name": "高风险 4文字",
+                              "fill": "#192D45",
+                              "content": "高风险 4",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rYRnV",
+                          "name": "中风险 2",
+                          "height": 34,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 5,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "mal28",
+                              "name": "中风险 2文字",
+                              "fill": "#192D45",
+                              "content": "中风险 2",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "g1Dygd",
+                          "name": "低风险 0",
+                          "height": 34,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 5,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            14
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CqaRU",
+                              "name": "低风险 0文字",
+                              "fill": "#192D45",
+                              "content": "低风险 0",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "bUcSL",
+                      "name": "选中风险：知识产权",
+                      "width": "fill_container",
+                      "fill": "#FFFFFF",
+                      "cornerRadius": 6,
+                      "stroke": "#2563EB",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "gKhzy",
+                          "name": "风险标题及等级",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "BwaJd",
+                              "name": "高风险标签",
+                              "fill": "#FCE8E8",
+                              "cornerRadius": 4,
+                              "padding": [
+                                4,
+                                8
+                              ],
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "rCF3U",
+                                  "name": "高风险文字",
+                                  "fill": "#C43737",
+                                  "content": "高风险",
+                                  "fontFamily": "Noto Serif SC",
+                                  "fontSize": 12,
+                                  "fontWeight": "500"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "usQFu",
+                              "name": "风险名称",
+                              "fill": "#192D45",
+                              "content": "成果知识产权全部归对方",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 15,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "zikQ7",
+                          "name": "原文位置与跳转",
+                          "width": "fill_container",
+                          "justifyContent": "space_between",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "Ul7aE",
+                              "name": "风险锚点位置",
+                              "fill": "#63748D",
+                              "content": "第 7 页 · 第十一条",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "uCivu",
+                              "name": "定位原文按钮",
+                              "fill": "#2563EB",
+                              "content": "定位原文 ↗",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "JfGM9",
+                          "name": "风险证据原文",
+                          "width": "fill_container",
+                          "fill": "#F6F8FB",
+                          "cornerRadius": 4,
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "jYwsU",
+                              "name": "原文片段标题",
+                              "fill": "#63748D",
+                              "content": "原文片段",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "text",
+                              "id": "ViJ5v",
+                              "name": "原文片段内容",
+                              "fill": "#192D45",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "本项目产生的全部知识产权归乙方所有。",
+                              "lineHeight": 1.65,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "xze87",
+                          "name": "风险说明",
+                          "fill": "#192D45",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "成果权利全部归乙方，我方后续使用与修改可能受限。",
+                          "lineHeight": 1.65,
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "K7dLz",
+                          "name": "法律依据",
+                          "fill": "#63748D",
+                          "content": "法律依据：待法务确认",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "i00AK",
+                          "name": "推荐修改条款",
+                          "width": "fill_container",
+                          "fill": "#EDF4FF",
+                          "cornerRadius": 4,
+                          "layout": "vertical",
+                          "gap": 6,
+                          "padding": 12,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "F8JSV",
+                              "name": "推荐条款标题",
+                              "fill": "#41649B",
+                              "content": "推荐修改条款",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "Y3Gfni",
+                              "name": "推荐条款内容",
+                              "fill": "#274A7A",
+                              "textGrowth": "fixed-width",
+                              "width": "fill_container",
+                              "content": "项目定制成果的知识产权归甲方所有。乙方保留既有技术的权利，并授予甲方必要的使用许可。",
+                              "lineHeight": 1.65,
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "rQ2Sa",
+                          "name": "风险复核操作",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "MdKyq",
+                              "name": "采纳建议",
+                              "height": 34,
+                              "fill": "#2563EB",
+                              "cornerRadius": 5,
+                              "stroke": "#2563EB",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "kC7bw",
+                                  "name": "采纳建议文字",
+                                  "fill": "#FFFFFF",
+                                  "content": "采纳建议",
+                                  "fontFamily": "Noto Serif SC",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "Nnltl",
+                              "name": "编辑",
+                              "height": 34,
+                              "fill": "#FFFFFF",
+                              "cornerRadius": 5,
+                              "stroke": "#E1E7EF",
+                              "strokeWidth": 1,
+                              "padding": [
+                                0,
+                                14
+                              ],
+                              "justifyContent": "center",
+                              "alignItems": "center",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "c5YZ40",
+                                  "name": "编辑文字",
+                                  "fill": "#192D45",
+                                  "content": "编辑",
+                                  "fontFamily": "Noto Serif SC",
+                                  "fontSize": 13,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "text",
+                              "id": "rFxCD",
+                              "name": "标记误报按钮",
+                              "fill": "#63748D",
+                              "content": "标记误报",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "s7lCv",
+                      "name": "折叠风险：付款节点",
+                      "width": "fill_container",
+                      "cornerRadius": 6,
+                      "stroke": "#E1E7EF",
+                      "strokeWidth": 1,
+                      "layout": "vertical",
+                      "gap": 8,
+                      "padding": 14,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "JCzv2",
+                          "name": "付款风险概要",
+                          "width": "fill_container",
+                          "gap": 10,
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "iDUma",
+                              "name": "付款风险等级",
+                              "fill": "#C43737",
+                              "content": "高风险",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 12,
+                              "fontWeight": "500"
+                            },
+                            {
+                              "type": "text",
+                              "id": "j5Wm33",
+                              "name": "付款风险标题",
+                              "fill": "#192D45",
+                              "content": "付款节点缺少验收条件",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 14,
+                              "fontWeight": "600"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "ZSG5X",
+                          "name": "付款风险定位",
+                          "fill": "#63748D",
+                          "content": "第 3 页 · 建议将付款与验收结果关联。",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "QYoJ8",
+              "name": "法务复核与审批回写",
+              "width": "fill_container",
+              "height": 176,
+              "fill": "#FFFFFF",
+              "cornerRadius": 8,
+              "stroke": "#E1E7EF",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Dv35R",
+                  "name": "法务复核标题和进度",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "gXxRR",
+                      "name": "复核标题与确认数量",
+                      "gap": 18,
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "NLJ3u",
+                          "name": "法务区标题",
+                          "fill": "#192D45",
+                          "content": "法务复核与审批回写",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 17,
+                          "fontWeight": "600"
+                        },
+                        {
+                          "type": "text",
+                          "id": "xg1hf",
+                          "name": "确认数量",
+                          "fill": "#192D45",
+                          "content": "已确认 2 / 6",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "xcCmz",
+                          "name": "确认进度条底色",
+                          "width": 160,
+                          "height": 5,
+                          "fill": "#E8EDF3",
+                          "cornerRadius": 3,
+                          "children": [
+                            {
+                              "type": "rectangle",
+                              "cornerRadius": 3,
+                              "id": "DsLmd",
+                              "name": "已确认进度三分之一",
+                              "fill": "#2563EB",
+                              "width": 53,
+                              "height": 5
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "yPQpO",
+                      "name": "待确认风险提示",
+                      "fill": "#926312",
+                      "content": "尚有高风险未确认",
+                      "fontFamily": "Noto Serif SC",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "CxtoE",
+                  "name": "法务批注输入行",
+                  "width": "fill_container",
+                  "gap": 16,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "Nmwhg",
+                      "name": "批注字段名",
+                      "fill": "#192D45",
+                      "content": "法务批注",
+                      "fontFamily": "Noto Serif SC",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "mLDRR",
+                      "name": "法务批注输入框",
+                      "width": "fill_container",
+                      "height": 54,
+                      "cornerRadius": 5,
+                      "stroke": "#D9E3EF",
+                      "strokeWidth": 1,
+                      "padding": [
+                        0,
+                        16
+                      ],
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "lItnF",
+                          "name": "批注示例",
+                          "fill": "#192D45",
+                          "content": "请业务部门重新协商知识产权条款。",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "XZ1LV",
+                          "name": "保存批注操作",
+                          "fill": "#2563EB",
+                          "content": "保存批注",
+                          "fontFamily": "Noto Serif SC",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "DvWXb",
+                  "name": "回写状态和人工触发操作",
+                  "width": "fill_container",
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FC7jY",
+                      "name": "回写状态",
+                      "fill": "#63748D",
+                      "content": "回写状态：未回写",
+                      "fontFamily": "Noto Serif SC",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "H5eA5y",
+                      "name": "预览与回写按钮",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "G1nl1V",
+                          "name": "回写预览",
+                          "height": 34,
+                          "fill": "#FFFFFF",
+                          "cornerRadius": 5,
+                          "stroke": "#E1E7EF",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "CPYb2",
+                              "name": "回写预览标签",
+                              "fill": "#192D45",
+                              "content": "回写预览",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "eTx4J",
+                          "name": "写回审批意见",
+                          "height": 34,
+                          "fill": "#2563EB",
+                          "cornerRadius": 5,
+                          "stroke": "#2563EB",
+                          "strokeWidth": 1,
+                          "padding": [
+                            0,
+                            16
+                          ],
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "C30qhk",
+                              "name": "写回审批意见标签",
+                              "fill": "#FFFFFF",
+                              "content": "写回审批意见",
+                              "fontFamily": "Noto Serif SC",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "fileToken": "afc3714e-ec8d-42a5-8cf6-f15dbcda87dd"
+}

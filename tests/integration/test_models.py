@@ -6,30 +6,11 @@ from uuid import uuid4
 import pytest
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker
 
 from app.core import db
 from app.models import AppUser, ContractTask
 
 pytestmark = pytest.mark.integration
-
-
-@pytest.fixture
-def factory():
-    # 外层事务最终回滚；Session 的 commit 只释放内层 SAVEPOINT。
-    # 因此能验证提交行为，同时不把测试用户、任务留在业务库中。
-    with db.get_engine().connect() as connection:
-        transaction = connection.begin()
-        session_factory = sessionmaker(
-            bind=connection,
-            join_transaction_mode="create_savepoint",
-            autoflush=False,
-            expire_on_commit=False,
-        )
-        try:
-            yield session_factory
-        finally:
-            transaction.rollback()
 
 
 def make_user() -> AppUser:
