@@ -1,0 +1,12 @@
+- username: legal
+  display_name: 法务审查人
+  role_code: LEGAL
+  company_name: 示例企业有限公司
+- username: biz
+  display_name: 业务经办人
+  role_code: BIZ
+  company_name: 示例企业有限公司
+- username: admin
+  display_name: 系统管理员
+  role_code: ADMIN
+  company_name: 示例企业有限公司
