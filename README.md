@@ -34,9 +34,9 @@ pwsh -File scripts/start-frontend.ps1
 pwsh -File scripts/check-env.ps1
 ```
 
-健康检查的顶层 `status=ok` 仅表示基础数据库环境可用；模型、OCR、审批能力必须分别查看对应字段。`disabled`、`pending` 和 `reachable` 不代表已完成业务验收。
+健康检查的顶层 `status=ok` 仅表示基础数据库环境可用；模型、MinerU、审批能力必须分别查看对应字段。`disabled`、`pending`、`unverified` 和 `reachable` 不代表已完成业务验收。
 
-## 模型与 OCR 配置
+## 模型与 MinerU 配置
 
 在根目录 `.env` 填写真实服务信息：
 
@@ -45,15 +45,19 @@ LLM_ENABLED=1
 LLM_BASE_URL=https://your-provider.example/v1
 LLM_MODEL_NAME=your-model-name
 LLM_API_KEY=
-OCR_ENABLED=1
-OCR_BASE_URL=http://your-mineru-host:8100
-OCR_HEALTH_PATH=/health
-OCR_API_KEY=
+MINERU_ENABLED=1
+MINERU_API_TOKEN=
+MINERU_BASE_URL=https://mineru.net/api/v4
+MINERU_HEALTH_PATH=
 ```
 
-API Key 从你实际使用的模型服务商控制台获取并直接写入 `.env`。文档中的 `deepseek-flash` 是待验证配置值，需要替换为服务商实际提供的模型 ID。MinerU 的健康路径、上传路径和响应格式需按实际部署版本核对，环境骨架不包含 MinerU 服务或模型权重。
+API Key 从你实际使用的模型服务商控制台获取并直接写入 `.env`。文档中的 `deepseek-flash` 是待验证配置值，需要替换为服务商实际提供的模型 ID。
 
-本阶段新增显式 `LLM_ENABLED=0` 开关，允许在等待服务信息时启动环境检查；启用模型后，缺少密钥将拒绝启动，遵循技术方案 KEY-01。修改 `.env` 后重启后端。
+`MINERU_BASE_URL` 是 MinerU 云 API 的版本根地址，`MINERU_API_TOKEN` 用于 Bearer 认证，具体任务路径由后续 MinerU 客户端拼接。配置变量统一使用 `MINERU_` 前缀，表示文档解析服务；Milvus 是向量数据库。
+
+云 API 的 `MINERU_HEALTH_PATH` 默认留空，当前健康检查显示「地址和 Token 已配置，解析接口待接入验证」，不调用假定的 `/health`，也不创建解析任务。只有实际服务明确提供健康端点时才填写该路径。环境骨架不包含本地 MinerU 服务或模型权重。
+
+本阶段新增显式 `LLM_ENABLED=0` 开关，允许在等待服务信息时启动环境检查；启用模型后，缺少密钥将拒绝启动，遵循技术方案 KEY-01。启用 MinerU 后也必须配置 Token。修改 `.env` 后重启后端。
 
 `.env`、日志、缓存及运行数据已加入 `.gitignore`，不要提交真实密钥。前端代理地址可写入 `frontend/.env` 的 `API_PROXY_TARGET`；代理默认访问 `http://127.0.0.1:8000`。
 

@@ -13,7 +13,7 @@ if (-not (Test-Path -LiteralPath '.env')) {
     $template = [regex]::Replace($template, '(?m)^MYSQL_PASSWORD=\r?$', "MYSQL_PASSWORD=$password")
     $template = [regex]::Replace($template, '(?m)^MYSQL_ROOT_PASSWORD=\r?$', "MYSQL_ROOT_PASSWORD=$rootPassword")
     [IO.File]::WriteAllText((Join-Path $ProjectRoot '.env'), $template)
-    Write-Host '.env 已创建，数据库密码已随机生成。请自行填写模型与 OCR 配置。'
+    Write-Host '.env 已创建，数据库密码已随机生成。请自行填写模型与 MinerU 配置。'
 }
 Invoke-Checked 'uv' @('python', 'install', '3.11', '--no-bin')
 Invoke-Checked 'uv' @('sync', '--locked')

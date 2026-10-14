@@ -31,11 +31,13 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = 25
     llm_max_retries: int = 1
     llm_concurrency: int = 4
-    ocr_enabled: bool = False
-    ocr_base_url: str = "http://127.0.0.1:8100"
-    ocr_api_key: SecretStr = SecretStr("")
-    ocr_health_path: str = "/health"
-    ocr_timeout_seconds: int = 90
+    mineru_enabled: bool = False
+    mineru_base_url: str = "https://mineru.net/api/v4"
+    mineru_api_token: SecretStr = SecretStr("")
+    mineru_health_path: str = ""
+    mineru_timeout_seconds: int = 90
+    mineru_min_avg_confidence: float = Field(default=0.85, ge=0, le=1)
+    mineru_render_dpi: int = Field(default=200, gt=0)
     approval_mode: str = "mock"
     approval_base_url: str = "http://127.0.0.1:8000"
     max_upload_mb: int = 50
@@ -51,6 +53,8 @@ class Settings(BaseSettings):
             raise RuntimeError("请在 .env 中配置 MYSQL_PASSWORD")
         if self.llm_enabled and not self.llm_api_key.get_secret_value():
             raise RuntimeError("请在 .env 中配置 LLM_API_KEY")
+        if self.mineru_enabled and not self.mineru_api_token.get_secret_value():
+            raise RuntimeError("请在 .env 中配置 MINERU_API_TOKEN")
         if self.approval_mode != "mock":
             raise RuntimeError("基础环境阶段仅支持 APPROVAL_MODE=mock")
 

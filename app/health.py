@@ -42,32 +42,39 @@ async def check_llm() -> dict:
         return {"status": "error", "message": "模型服务检查失败，请核对地址与认证配置"}
 
 
-async def check_ocr() -> dict:
+async def check_mineru() -> dict:
     settings = get_settings()
-    if not settings.ocr_enabled:
-        return {"status": "disabled", "message": "待配置 MinerU OCR 服务"}
+    if not settings.mineru_enabled:
+        return {"status": "disabled", "message": "待配置 MinerU 文档解析服务"}
+    if not settings.mineru_api_token.get_secret_value():
+        return {"status": "error", "message": "尚未配置 MINERU_API_TOKEN"}
+    if not settings.mineru_health_path:
+        return {
+            "status": "unverified",
+            "message": "MinerU 地址和 Token 已配置，解析接口待接入验证",
+        }
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             response = await client.get(
-                settings.ocr_base_url.rstrip("/") + "/" + settings.ocr_health_path.lstrip("/"),
-                headers={"Authorization": f"Bearer {settings.ocr_api_key.get_secret_value()}"}
-                if settings.ocr_api_key.get_secret_value()
-                else {},
+                settings.mineru_base_url.rstrip("/")
+                + "/"
+                + settings.mineru_health_path.lstrip("/"),
+                headers={"Authorization": f"Bearer {settings.mineru_api_token.get_secret_value()}"},
             )
         if response.status_code == 200:
-            return {"status": "reachable", "message": "健康端点可达，OCR 解析契约待验证"}
-        return {"status": "error", "message": f"OCR 服务返回 HTTP {response.status_code}"}
+            return {"status": "reachable", "message": "健康端点可达，MinerU 解析接口待验证"}
+        return {"status": "error", "message": f"MinerU 服务返回 HTTP {response.status_code}"}
     except Exception:
-        return {"status": "error", "message": "OCR 服务连接失败，请核对地址"}
+        return {"status": "error", "message": "MinerU 服务连接失败，请核对地址"}
 
 
 async def health_report() -> dict:
-    db, llm, ocr = await asyncio.gather(asyncio.to_thread(check_db), check_llm(), check_ocr())
+    db, llm, mineru = await asyncio.gather(asyncio.to_thread(check_db), check_llm(), check_mineru())
     return {
         "status": "ok" if db["status"] == "ok" else "error",
         "phase": "environment-setup",
         "db": db,
         "llm": llm,
-        "ocr": ocr,
+        "mineru": mineru,
         "approval": {"status": "pending", "message": "Mock 审批业务接口尚未实现"},
     }
