@@ -66,10 +66,10 @@ class RunSpan(IRModel):
     """Word 段落中的文字片段及样式，后续用来识别标题。"""
 
     text: str
-    bold: bool | None = None   #是否加粗
-    italic: bool | None = None  #是否斜体
-    font_name: str | None = None  #字体名称
-    font_size_pt: float | None = Field(default=None, gt=0)  #字号
+    bold: bool | None = None  # 是否加粗
+    italic: bool | None = None  # 是否斜体
+    font_name: str | None = None  # 字体名称
+    font_size_pt: float | None = Field(default=None, gt=0)  # 字号
 
 
 class LineBox(IRModel):
