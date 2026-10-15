@@ -77,18 +77,17 @@ def upload_contract(
     identity: Annotated[IdentityHeaders, Depends(parse_identity_headers)],
     db: Annotated[Session, Depends(get_db)],
     file: Annotated[UploadFile, File()],
-    contract_name: Annotated[str, Form(max_length=255)],
-    contract_type: Annotated[
-        Literal["PURCHASE", "SALES", "SERVICE", "LABOR", "UNKNOWN"], Form()
-    ] = "UNKNOWN",
+    contract_type: Annotated[Literal["PURCHASE", "SALES", "SERVICE", "LABOR"], Form()],
+    our_party_role: Annotated[Literal["A", "B"], Form()],
+    contract_name: Annotated[str | None, Form(max_length=255)] = None,
     amount: Annotated[Decimal | None, Form(ge=0, max_digits=18, decimal_places=2)] = None,
     currency: Annotated[str | None, Form(max_length=3)] = None,
-    our_party_role: Annotated[Literal["A", "B"] | None, Form()] = "A",
     applicant_dept: Annotated[str | None, Form(max_length=64)] = None,
 ):
-    name = contract_name.strip()
-    if not name:
-        raise AppError(400, 40001, "合同名称不能为空")
+    # 1. 类型与我方角色由调用方明确填写，不猜测甲方；名称允许后续从原文提取。
+    # task 表名称非空，因此先存展示占位，不把占位文字当作原文识别结果。
+    name = (contract_name or "").strip() or "待识别合同"
+    department = (applicant_dept or "").strip() or None
     original_name = (file.filename or "").replace("\\", "/").split("/")[-1].strip()
     if not original_name or len(original_name) > 255:
         raise AppError(400, 40001, "文件名不能为空且不能超过 255 字符")
@@ -97,6 +96,9 @@ def upload_contract(
 
     # FastAPI 完成所有表单字段校验后才进入方法，再去数据库确认身份。
     user: AppUser = resolve_user(identity, db)
+    # 2. 申请人只取当前数据库身份；管理员/法务不会因角色更高而自动获得上传权。
+    if user.role_code != "BIZ":
+        raise AppError(403, 40300, "仅业务经办人可以上传合同发起审查")
     settings = get_settings()
     upload_root = settings.storage_path / "uploads"
     staged, file_size, file_md5 = _stage_upload(
@@ -114,6 +116,10 @@ def upload_contract(
                 ContractTask.applicant_id == user.id,
                 ContractTask.source_type == "UPLOAD",
                 ContractTask.is_deleted.is_(False),
+                # 相同文件在不同类型/我方角色/送审部门下有不同审查含义，不能复用。
+                ContractTask.contract_type == contract_type,
+                ContractTask.our_party_role == our_party_role,
+                ContractTask.applicant_dept == department,
                 ContractFile.file_md5 == file_md5,
                 ContractFile.file_size == file_size,
             )
@@ -136,7 +142,7 @@ def upload_contract(
             contract_name=name,
             contract_type=contract_type,
             applicant_id=user.id,
-            applicant_dept=applicant_dept or None,
+            applicant_dept=department,
             amount=amount,
             currency=currency.upper() if currency else None,
             our_party_role=our_party_role,

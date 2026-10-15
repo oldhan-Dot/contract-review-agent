@@ -1,17 +1,1 @@
-:root { font-family: "Microsoft YaHei", system-ui, sans-serif; color: #24354b; background: #f4f6fa; }
-body { margin: 0; }
-main { max-width: 1080px; margin: 0 auto; padding: 32px; }
-header { display: flex; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid #dce3ed; font-weight: 700; }
-header small { font-weight: 400; color: #677991; }
-section { margin-top: 40px; }
-h1 { font-size: 28px; }
-p { color: #677991; line-height: 1.8; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; margin: 24px 0; }
-article { background: white; border: 1px solid #dce3ed; border-radius: 10px; padding: 24px; }
-h2 { font-size: 17px; margin-top: 0; }
-strong { color: #946a14; }
-strong.ok { color: #16745e; }
-strong.error { color: #b53434; }
-button { border: 0; border-radius: 6px; padding: 10px 20px; background: #235bd8; color: white; cursor: pointer; }
-button:disabled { opacity: .6; }
-a { color: #235bd8; }
+@import './workspace.css';

@@ -32,7 +32,7 @@ onMounted(refresh)
 <template>
   <section>
     <h1>环境检查</h1>
-    <p>当前为项目基础骨架，合同上传、智能审查与审批回写功能将在后续开发。</p>
+    <p>查看实际服务连接状态。模型未配置时保留规则初筛结果，并明确显示审查未完成。</p>
     <button :disabled="loading" @click="refresh">{{ loading ? '检查中…' : '刷新状态' }}</button>
     <p v-if="error" role="alert">{{ error }}</p>
     <div v-if="report" class="grid">

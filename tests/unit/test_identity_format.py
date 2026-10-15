@@ -1,8 +1,11 @@
 """格式不合法时必须在查库前拒绝；此组测试无需 MySQL。"""
 
+from types import SimpleNamespace
+
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api import tasks
 from app.core.db import get_db
 
 
@@ -79,14 +82,65 @@ def test_invalid_task_id_is_422_before_user_lookup(client, task_id):
         {"amount": "-1"},
         {"amount": "1.234"},
         {"contract_type": "OTHER"},
+        {"contract_type": "UNKNOWN"},
+        {"our_party_role": "甲方"},
+        {"our_party_role": "a"},
+        {"contract_name": "名" * 256},
     ],
 )
 def test_invalid_upload_form_is_rejected_before_user_lookup(client, fields):
     response = client.post(
         "/api/tasks/upload",
         headers={"X-User-Id": "1", "X-User-Role": "BIZ"},
-        data={"contract_name": "合同", **fields},
+        data={"contract_type": "PURCHASE", "our_party_role": "A", **fields},
         files={"file": ("contract.docx", b"placeholder")},
     )
     assert response.status_code == 422
     assert response.json()["code"] == 40001
+    assert any(
+        error["field"] == f"body.{next(iter(fields))}" for error in response.json()["errors"]
+    )
+
+
+@pytest.mark.parametrize("missing", ["contract_type", "our_party_role"])
+def test_required_review_context_is_not_defaulted_or_queried(client, missing):
+    fields = {"contract_type": "PURCHASE", "our_party_role": "A"}
+    fields.pop(missing)
+    response = client.post(
+        "/api/tasks/upload",
+        headers={"X-User-Id": "1", "X-User-Role": "BIZ"},
+        data=fields,
+        files={"file": ("contract.docx", b"placeholder")},
+    )
+    assert response.status_code == 422
+    assert any(error["field"] == f"body.{missing}" for error in response.json()["errors"])
+
+
+@pytest.mark.parametrize("role", ["LEGAL", "ADMIN"])
+def test_verified_non_business_identity_denied_before_file_write(api_app, monkeypatch, role):
+    user = SimpleNamespace(id=1, role_code=role, is_active=True)
+    api_app.dependency_overrides[get_db] = lambda: SimpleNamespace(get=lambda *args: user)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("非业务角色不得暂存上传文件")
+
+    monkeypatch.setattr(tasks, "_stage_upload", forbidden)
+    with TestClient(api_app) as test_client:
+        response = test_client.post(
+            "/api/tasks/upload",
+            headers={"X-User-Id": "1", "X-User-Role": role},
+            data={"contract_type": "PURCHASE", "our_party_role": "B"},
+            files={"file": ("contract.docx", b"placeholder")},
+        )
+    assert response.status_code == 403
+    assert response.json()["code"] == 40300
+
+
+def test_openapi_upload_requires_context_but_not_title(api_app):
+    schema = api_app.openapi()
+    body = schema["paths"]["/api/tasks/upload"]["post"]["requestBody"]["content"][
+        "multipart/form-data"
+    ]["schema"]
+    form = schema["components"]["schemas"][body["$ref"].rsplit("/", 1)[-1]]
+    assert set(form["required"]) == {"file", "contract_type", "our_party_role"}
+    assert "default" not in form["properties"]["our_party_role"]

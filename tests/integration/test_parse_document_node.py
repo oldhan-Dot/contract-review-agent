@@ -28,7 +28,11 @@ def node_context(factory, tmp_path, monkeypatch):
         session.add(user)
         session.flush()
         task = ContractTask(
-            task_no=f"NODE-{uuid4().hex[:20]}", contract_name="节点测试合同", applicant_id=user.id
+            task_no=f"NODE-{uuid4().hex[:20]}",
+            contract_name="节点测试合同",
+            applicant_id=user.id,
+            contract_type="PURCHASE",
+            our_party_role="B",
         )
         session.add(task)
         session.flush()
@@ -51,7 +55,9 @@ def node_context(factory, tmp_path, monkeypatch):
 def test_node_reads_record_and_returns_valid_document(node_context):
     state, _ = node_context
     update = node_module.parse_document(state)
-    assert set(update) == {"document"}
+    assert set(update) == {"document", "contract_type", "our_party_role"}
+    assert update["contract_type"] == "PURCHASE"
+    assert update["our_party_role"] == "B"
     assert update["document"].file_id == state["file_id"]
     assert "采购设备" in update["document"].full_text
     assert "document" not in state  # 节点返回增量，不直接修改调用者的输入。
@@ -61,6 +67,8 @@ def test_graph_passes_parsed_document_to_next_node(node_context):
     state, _ = node_context
 
     def structure(current):
+        assert current["contract_type"] == "PURCHASE"
+        assert current["our_party_role"] == "B"
         assert current["document"].file_id == state["file_id"]
         assert current["document"].paragraphs
         return {"review_summary": "测试节点收到解析结果"}
@@ -133,3 +141,14 @@ def test_parser_failure_preserves_empty_body_reason(node_context):
     with pytest.raises(ParseBlocked) as error:
         node_module.parse_document(state)
     assert error.value.reason == "EMPTY_BODY"
+
+
+@pytest.mark.parametrize("field,value", [("contract_type", "UNKNOWN"), ("our_party_role", None)])
+def test_incomplete_stored_context_is_rejected(node_context, factory, field, value):
+    state, _ = node_context
+    with factory() as session:
+        task = session.get(ContractTask, state["task_id"])
+        setattr(task, field, value)
+        session.commit()
+    with pytest.raises(ValueError, match=field):
+        node_module.parse_document(state)

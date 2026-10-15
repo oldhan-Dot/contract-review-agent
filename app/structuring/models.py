@@ -54,7 +54,7 @@ class Clause(BaseModel):
     parent_index: int | None = Field(default=None, ge=1)
     part_no: int | None = Field(default=None, ge=1)  # 长条款拆分出的子条款序号。
 
-    # 分类器尚未实现，默认 OTHER 表示未归类，不代表已经完成内容判断。
+    # 分类器填充以下字段；初始 OTHER 表示未归类，不代表已经完成内容判断。
     clause_type: ClauseType = ClauseType.OTHER
     clause_type_secondary: ClauseType | None = None
     type_confidence: float = Field(default=0, ge=0, le=1)

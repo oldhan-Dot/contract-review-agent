@@ -55,7 +55,12 @@ def send(client, user_id, content, filename="合同.docx", **fields):
     return client.post(
         "/api/tasks/upload",
         headers={"X-User-Id": str(user_id), "X-User-Role": "BIZ"},
-        data={"contract_name": "测试采购合同", "contract_type": "PURCHASE", **fields},
+        data={
+            "contract_name": "测试采购合同",
+            "contract_type": "PURCHASE",
+            "our_party_role": "A",
+            **fields,
+        },
         files={"file": (filename, content, "application/octet-stream")},
     )
 
@@ -100,9 +105,9 @@ def test_valid_upload_and_duplicate_reuse(upload_client):
         ("contract.docx", b"not a docx" * 200, {}, 415, 41501),
         ("contract.docx", b"", {}, 400, 40001),
         ("contract.docx", b"x" * (50 * 1024 * 1024 + 1), {}, 413, 41301),
-        ("contract.docx", b"x" * 2048, {"contract_name": "   "}, 400, 40001),
+        ("contract.docx", b"x" * 2048, {"contract_name": "名" * 256}, 422, 40001),
     ],
-    ids=["unsupported-extension", "fake-docx", "empty", "over-limit", "blank-name"],
+    ids=["unsupported-extension", "fake-docx", "empty", "over-limit", "overlong-name"],
 )
 def test_invalid_upload_creates_nothing(
     upload_client, filename, content, fields, http_status, code
@@ -157,3 +162,78 @@ def test_different_applicants_do_not_share_task(upload_client):
     assert second.status_code == 201
     assert second.json()["data"]["duplicated"] is False
     assert second.json()["data"]["task_id"] != first.json()["data"]["task_id"]
+
+
+@pytest.mark.parametrize("name", [None, "", "   "])
+def test_optional_title_uses_display_placeholder(upload_client, name):
+    client, factory, _, user_id = upload_client
+    response = send(client, user_id, docx_bytes(), contract_name=name)
+    assert response.status_code == 201
+    with factory() as session:
+        task = session.get(ContractTask, response.json()["data"]["task_id"])
+        assert task.contract_name == "待识别合同"
+        assert task.contract_type == "PURCHASE"
+        assert task.our_party_role == "A"
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"our_party_role": "B"},
+        {"contract_type": "SALES"},
+        {"applicant_dept": "销售部"},
+    ],
+)
+def test_same_file_with_different_review_context_creates_new_task(upload_client, changes):
+    client, factory, _, user_id = upload_client
+    content = docx_bytes()
+    first = send(client, user_id, content)
+    second = send(client, user_id, content, **changes)
+    assert first.status_code == second.status_code == 201
+    assert second.json()["data"]["duplicated"] is False
+    assert first.json()["data"]["task_id"] != second.json()["data"]["task_id"]
+    with factory() as session:
+        saved = session.get(ContractTask, second.json()["data"]["task_id"])
+        for field, value in changes.items():
+            assert getattr(saved, field) == value
+
+
+def test_normalized_department_reuses_same_context(upload_client):
+    client, _, _, user_id = upload_client
+    content = docx_bytes()
+    first = send(client, user_id, content, applicant_dept="采购部")
+    second = send(client, user_id, content, applicant_dept=" 采购部 ")
+    assert first.status_code == second.status_code == 201
+    assert second.json()["data"]["task_id"] == first.json()["data"]["task_id"]
+    assert second.json()["data"]["duplicated"] is True
+
+
+@pytest.mark.parametrize("role", ["LEGAL", "ADMIN"])
+def test_non_business_role_cannot_upload_or_write_files(upload_client, role):
+    client, factory, root, user_id = upload_client
+    with factory() as session:
+        user = session.get(AppUser, user_id)
+        user.role_code = role
+        session.commit()
+    response = client.post(
+        "/api/tasks/upload",
+        headers={"X-User-Id": str(user_id), "X-User-Role": role},
+        data={"contract_type": "PURCHASE", "our_party_role": "A"},
+        files={"file": ("contract.docx", docx_bytes())},
+    )
+    assert response.status_code == 403
+    with factory() as session:
+        assert (
+            session.scalar(select(ContractTask.id).where(ContractTask.applicant_id == user_id))
+            is None
+        )
+    assert not (root / "uploads").exists()
+
+
+def test_applicant_cannot_be_overridden_by_form(upload_client):
+    client, factory, _, user_id = upload_client
+    response = send(client, user_id, docx_bytes(), applicant_id=str(user_id + 100000))
+    assert response.status_code == 201
+    with factory() as session:
+        task = session.get(ContractTask, response.json()["data"]["task_id"])
+        assert task.applicant_id == user_id

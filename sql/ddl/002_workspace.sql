@@ -1,0 +1,21 @@
+-- 首版工作台快照：新增表，不改动或清空现有数据。
+CREATE TABLE IF NOT EXISTS review_snapshot (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    task_id BIGINT UNSIGNED NOT NULL,
+    review_version INT UNSIGNED NOT NULL,
+    payload JSON NOT NULL,
+    human_review JSON NOT NULL,
+    revision INT UNSIGNED NOT NULL DEFAULT 0,
+    confirmed_revision INT UNSIGNED NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    UNIQUE KEY uk_snapshot_version (task_id, review_version),
+    CONSTRAINT fk_snapshot_task FOREIGN KEY (task_id) REFERENCES contract_task(id)
+) ENGINE=InnoDB;
+CREATE TABLE IF NOT EXISTS review_rule_setting (
+    rule_code VARCHAR(16) NOT NULL PRIMARY KEY,
+    payload JSON NOT NULL,
+    version INT UNSIGNED NOT NULL DEFAULT 1,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+) ENGINE=InnoDB;
