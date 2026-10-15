@@ -9,6 +9,7 @@ BlockReason = Literal[
     "EMPTY_BODY",
     "PARSE_ERROR",
     "UNSUPPORTED_FORMAT",
+    "OCR_REQUIRED",
 ]
 
 

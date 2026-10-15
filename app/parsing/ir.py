@@ -30,7 +30,7 @@ class Precision(str, Enum):
 
 
 class BBox(IRModel):
-    """PDF/OCR 的像素坐标，原点在左上角；DOCX 不填坐标。"""
+    """页面坐标，原点在左上角；PDF 用 point，OCR 用返回图像单位，DOCX 不填。"""
 
     x0: float = Field(ge=0)
     y0: float = Field(ge=0)

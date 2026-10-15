@@ -1,9 +1,11 @@
 """真实 MySQL 与临时目录共同验证上传结果，测试后不保留任务或文件。"""
 
+from importlib import import_module
 from io import BytesIO
 from types import SimpleNamespace
 from uuid import uuid4
 
+import pymupdf
 import pytest
 from docx import Document
 from fastapi.testclient import TestClient
@@ -49,6 +51,42 @@ def docx_bytes():
     stream = BytesIO()
     document.save(stream)
     return stream.getvalue()
+
+
+def test_pdf_upload_reaches_real_parse_and_structure_nodes(upload_client, monkeypatch):
+    from app.graph.nodes.structure_document import structure_document
+
+    client, factory, root, user_id = upload_client
+    with pymupdf.open() as pdf:
+        page = pdf.new_page()
+        for i, text in enumerate(
+            [
+                "软件采购合同",
+                "甲方：合成采购有限公司",
+                "乙方：合成开发有限公司",
+                "第一条 合同金额",
+                "合同总金额：人民币100000.00元，甲方在验收合格后支付价款。",
+                "第二条 保密义务",
+                "双方对商业秘密保密至合同终止后三年。",
+            ]
+        ):
+            page.insert_text((40, 60 + 30 * i), text, fontname="china-s", fontsize=10)
+        content = pdf.tobytes()
+    response = send(client, user_id, content, filename="合同.pdf")
+    assert response.status_code == 201, response.text
+    task_id = response.json()["data"]["task_id"]
+    with factory() as db:
+        file = db.scalar(select(ContractFile).where(ContractFile.task_id == task_id))
+        assert file.file_ext == "pdf" and file.mime_type == "application/pdf"
+        state = dict(task_id=task_id, file_id=file.id, review_version=1)
+    assert (root / "uploads" / str(task_id) / f"{task_id}_1.pdf").read_bytes() == content
+    module = import_module("app.graph.nodes.parse_document")
+    monkeypatch.setattr(module, "get_session_factory", lambda: factory)
+    state.update(module.parse_document(state))
+    result = structure_document(state)
+    assert state["document"].source_format == "PDF_TEXT"
+    assert result["metadata"].get("amount").field_value == "100000.00"
+    assert result["metadata"].get("amount").anchor.page_no == 1
 
 
 def send(client, user_id, content, filename="合同.docx", **fields):
@@ -103,11 +141,12 @@ def test_valid_upload_and_duplicate_reuse(upload_client):
     [
         ("contract.exe", b"x" * 2048, {}, 415, 41501),
         ("contract.docx", b"not a docx" * 200, {}, 415, 41501),
+        ("contract.pdf", b"not a pdf" * 200, {}, 415, 41501),
         ("contract.docx", b"", {}, 400, 40001),
         ("contract.docx", b"x" * (50 * 1024 * 1024 + 1), {}, 413, 41301),
         ("contract.docx", b"x" * 2048, {"contract_name": "名" * 256}, 422, 40001),
     ],
-    ids=["unsupported-extension", "fake-docx", "empty", "over-limit", "overlong-name"],
+    ids=["unsupported-extension", "fake-docx", "fake-pdf", "empty", "over-limit", "overlong-name"],
 )
 def test_invalid_upload_creates_nothing(
     upload_client, filename, content, fields, http_status, code

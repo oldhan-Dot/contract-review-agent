@@ -10,6 +10,7 @@ from app.models import ContractFile, ContractTask
 from app.parsing.docx_channel import parse_docx
 from app.parsing.exceptions import ParseBlocked
 from app.parsing.ir import ParsedDocument
+from app.parsing.pdf_channel import parse_pdf
 from app.review.context import ContractType, OurPartyRole
 
 
@@ -60,11 +61,13 @@ def parse_document(state: ReviewState) -> dict[str, ParsedDocument | str]:
         storage_path, file_ext = record.storage_path, record.file_ext
     # 数据库会话到此关闭，读取文件期间不持有事务，也不把 Session 放进共享状态。
 
-    # 2. 按格式调用解析器；未来 PDF/OCR 解析通道在这里分流。
-    if file_ext.lower() != "docx":
-        raise ParseBlocked("UNSUPPORTED_FORMAT", "当前解析节点仅支持 DOCX")
-    document = parse_docx(storage_path, file_id=state["file_id"])
+    # 2. 按格式调用解析器；PDF 缺少可靠文本时受阻，后续接 OCR 通道。
+    parsers = {"docx": parse_docx, "pdf": parse_pdf}
+    parser = parsers.get(file_ext.lower())
+    if parser is None:
+        raise ParseBlocked("UNSUPPORTED_FORMAT", "当前解析节点仅支持 DOCX 和文本型 PDF")
+    document = parser(storage_path, file_id=state["file_id"])
 
     # 3. 返回增量状态；LangGraph 合并后交给 structure_document 节点。
-    # 解析失败时直接抛出 ParseBlocked，由未来执行器处理 blocked 和错误展示。
+    # 解析失败时抛出 ParseBlocked，由执行器处理 blocked 和错误展示。
     return {"document": document, "contract_type": contract_type, "our_party_role": our_party_role}

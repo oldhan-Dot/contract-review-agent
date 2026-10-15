@@ -170,8 +170,8 @@ def _field(document, key, candidate, value, warnings, raw):
 
 def extract_money_metadata(document: ParsedDocument) -> MetadataResult:
     """数字金额优先，大写金额兜底；缺失和冲突作为字段提示返回。"""
-    if document.source_format != SourceFormat.DOCX:
-        raise ValueError("当前金额提取仅支持 DOCX 解析结果")
+    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
+        raise ValueError("当前金额提取仅支持 DOCX 和文本型 PDF")
     candidates = _candidates(document)
     numeric = next((item for item in candidates if not item.words), None)
     chinese = next(

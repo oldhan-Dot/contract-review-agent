@@ -5,6 +5,7 @@ import re
 from uuid import NAMESPACE_URL, uuid5
 
 import httpx
+from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
@@ -317,11 +318,27 @@ def evaluate_model(context: RuleReviewInput):
                 review_version=context.review_version,
                 items=risks,
             ), suggestions
-        except Exception:
+        except Exception as exc:
+            # 仅记录异常类型/状态码，不输出上游正文、请求头或合同内容。
+            status = exc.response.status_code if isinstance(exc, httpx.HTTPStatusError) else None
+            logger.warning(
+                "任务 {} 模型审查第 {} 次失败：{}，HTTP {}",
+                context.task_id,
+                attempt + 1,
+                type(exc).__name__,
+                status,
+            )
             if attempt == settings.llm_max_retries:
-                # 不把上游返回正文/认证信息带入前端或错误日志。
+                if isinstance(exc, httpx.TimeoutException):
+                    detail = "模型响应超时，请检查服务耗时与超时配置。"
+                elif isinstance(exc, httpx.HTTPStatusError):
+                    detail = f"模型服务返回 HTTP {status}，请检查服务配置或账户状态。"
+                elif isinstance(exc, httpx.RequestError):
+                    detail = "无法连接模型服务，请检查网络及服务地址。"
+                else:
+                    detail = "模型返回格式或原文证据未通过校验，请检查输出契约。"
                 raise ReviewUnavailable(
-                    "AI_FAILED", "模型调用或证据校验失败；已保留规则结果，可由管理员重试。"
+                    "AI_FAILED", detail + "已保留规则结果，可由管理员重试。"
                 ) from None
 
 

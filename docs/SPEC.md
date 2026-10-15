@@ -22,7 +22,7 @@ Vue 前端 + FastAPI 单体分层后端 + MySQL + 本地文件存储。LangGraph
 | 接口与类型 | FastAPI、Pydantic，校验请求、IR、条款、字段与风险；SQLAlchemy 管理事务 |
 | 数据与文件 | MySQL 8、本地 data/uploads；.env、data、日志、缓存不入库 |
 | 流程 | LangGraph 五节点；单槽后台线程，MySQL pending 为持久待办来源 |
-| 解析 | python-docx 已接入；PyMuPDF 文本 PDF 与 MinerU OCR 输入待接入 |
+| 解析 | python-docx、PyMuPDF 文本 PDF 已接入；MinerU OCR 输入待接入 |
 | 模型 | httpx 调用 OpenAI 兼容服务，Base URL/模型名/密钥由 .env 配置 |
 | 报告与预览 | PyMuPDF 生成中文报告 PDF；合同 PDF 在线预览和 Word 映射待实现 |
 
@@ -106,7 +106,7 @@ payload 保存 document、clauses、metadata、rule_risks、ai_risks、suggestio
 
 ### 5.2 内存契约与证据
 
-- `ParsedDocument`：full_text、段落、样式、表格关系、页/坐标及质量；段落/全文区间必须一致。
+- `ParsedDocument`：full_text、段落、样式、表格关系、页/坐标及质量；段落/全文区间必须一致。文本 PDF 按文本块/行读取，保留真实页码和旋转后的行框；几何精度为 PARAGRAPH，坐标单位 point，按页面尺寸缩放。
 - `Clause`：顺序、层级、类型、原文区间；`MetadataResult/MetadataField`：标准值、原文、缺失状态、警告及 Anchor。
 - `Anchor`：file_id、段落索引、局部/全文字符范围、证据文字、可用页码/bbox、精度。不得声明超出解析质量的精度；缺项风险不构造虚假 Anchor。
 - `RuleReviewInput`：任务/文件/审查版本、合同类型、我方角色、原文、条款和字段。上下文从数据库加载，不让模型猜我方身份。
@@ -219,7 +219,7 @@ sequenceDiagram
 
 固定系统提示词集中在 `app/prompts/`：正式审查用 `contract_review.txt`，独立探针用 `model_probe.txt`，分别通过 `load_prompt("contract_review")`、`load_prompt("model_probe")` 读取。加载器使用固定目录和名称登记，每次读取 UTF-8，拒绝未知名称或空文本；运行时合同数据继续作为 user 消息传入，结构/证据校验留在代码中。两份提示词输出契约不同，不混用。
 
-模型超时当前默认 25 秒、最多额外重试 1 次，由 Settings 配置；实际 .env 可覆盖，尚未形成性能承诺。未启用/缺密钥为 AI_NOT_CONFIGURED；输出/调用错误为 AI_FAILED；过长为 AI_CONTEXT_LIMIT。用户已告知配置完成，下一轮须重启并实际验证，本文没有执行模型请求或改密钥。
+模型超时默认 25 秒、最多额外重试 1 次，由 Settings 配置。合成任务实际出现 ReadTimeout，本次运行进程临时设置 90 秒、额外重试 0 次后成功，未修改 .env；后续重启需同步配置或再次传入环境变量。任务首轮约 46 秒，调整提示词后约 19 秒，不作为性能承诺。未启用/缺密钥为 AI_NOT_CONFIGURED；输出/调用错误为 AI_FAILED，detail 区分超时/HTTP/连接/返回校验；过长为 AI_CONTEXT_LIMIT。日志只记异常类型/状态，不输出服务正文、密钥或合同。
 
 当前模型风险与该风险建议同一响应校验；仅建议失败的独立重试/人工补充能力尚待拆分，不把这一产品要求计作已完成。规则风险建议使用示范文本；模型补充语义风险，跨来源去重和相关条款上下文判断仍需完善。
 
@@ -260,9 +260,9 @@ sequenceDiagram
 
 | 顺序 | 任务 | 依赖及完成判断 |
 |---|---|---|
-| T-01 | 重启后端并联调已配置模型 | 已有后台/适配器；合成样本检查请求、结构、证据、建议和失败保护 |
-| T-02 | 完整确认/模拟回写体验 | T-01；真实完整审查成功后法务确认、回写、导出，修正首轮页面问题 |
-| T-03 | 文本 PDF 解析和预览 | 复用 IR/Anchor；页码、文字/坐标和风险对应，不能复用伪页码 |
+| T-01 | 已完成合成模型联调 | 真实请求、结构/证据校验、超时保护已验证；提示词修正后识别预期三项，真实合同及独立样本待验 |
+| T-02 | 已完成合成确认/模拟回写 | T-01；合成任务确认、幂等回写、导出通过，浏览器视觉与交互仍待确认 |
+| T-03 | PDF 解析已接入，下一步分页预览 | 上传、文本块/行读取、页码/行框、字段和审查已验证；无足够文字的扫描页 OCR_REQUIRED，尚未绘制 PDF 原件及证据框 |
 | T-04 | Word 关联预览及映射 | T-03、用户转换试验；哈希/上下文/重复文字和跨页验证 |
 | T-05 | MinerU 扫描件输入 | 验证真实协议/任务轮询/返回格式，统一 IR，成功样例及失败重试 |
 | T-06 | 规则/模板与人工操作完善 | 已有首批配置/复核；补适用类型、条件、模板、依据、逐项采纳、仅建议失败处理 |

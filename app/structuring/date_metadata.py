@@ -217,8 +217,8 @@ def _period_days(document, start, end):
 
 def extract_date_metadata(document: ParsedDocument, *, today: date | None = None) -> MetadataResult:
     """提取五个日期/期限字段；today 可注入，使五年校验可重复验证。"""
-    if document.source_format != SourceFormat.DOCX:
-        raise ValueError("当前日期提取仅支持 DOCX 解析结果")
+    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
+        raise ValueError("当前日期提取仅支持 DOCX 和文本型 PDF")
     today = today or date.today()
     # 1. 先定位明确起止标签和有合同期限语境的日期区间。
     starts = [

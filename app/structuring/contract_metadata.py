@@ -125,8 +125,8 @@ def extract_contract_metadata(
     document: ParsedDocument, *, task_name: str | None = None
 ) -> MetadataResult:
     """名称取开头候选、编号取明确标签；仅显式传入任务名时允许名称兜底。"""
-    if document.source_format != SourceFormat.DOCX:
-        raise ValueError("当前合同名称与编号提取仅支持 DOCX 解析结果")
+    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
+        raise ValueError("当前合同名称与编号提取仅支持 DOCX 和文本型 PDF")
     title = _field(document, MetadataKey.CONTRACT_TITLE, _titles(document))
     # 技术方案允许任务名兜底；这是自动回退，不能伪装成人工修改或原文证据。
     if title.is_missing and task_name and task_name.strip():

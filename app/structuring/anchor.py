@@ -128,9 +128,9 @@ class Anchor(BaseModel):
         *,
         anchor_type: Literal["clause", "metadata"] = "metadata",
     ) -> Anchor:
-        """已知 DOCX 原文区间时生成位置；不会搜索或提取合同字段。"""
-        if document.source_format != SourceFormat.DOCX:
-            raise ValueError("当前原文位置构造仅支持 DOCX")
+        """按已知文字区间构造 DOCX/PDF 证据；PDF 坐标只声明行/段落精度。"""
+        if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
+            raise ValueError("当前原文位置构造仅支持 DOCX 和文本型 PDF")
         text = document.slice_text(start, end)
         if not text:
             raise ValueError("原文证据区间不能为空")
@@ -138,16 +138,32 @@ class Anchor(BaseModel):
         last = next((p for p in document.paragraphs if p.char_start < end <= p.char_end), None)
         if first is None or last is None:
             raise ValueError("原文区间起止位置必须位于实际段落内")
+        pdf = document.source_format == SourceFormat.PDF_TEXT
+        boxes = []
+        # 跨页不把多页矩形合成一个框；保留起止页/段落，后续预览按段落取各页行框。
+        if pdf and first.page_no == last.page_no:
+            for paragraph in document.paragraphs[first.index : last.index + 1]:
+                boxes.extend(
+                    line.bbox
+                    for line in paragraph.line_boxes
+                    if (
+                        paragraph.char_start + line.char_start < end
+                        and paragraph.char_start + line.char_end > start
+                    )
+                )
         anchor = cls(
             anchor_type=anchor_type,
             file_id=document.file_id,
+            page_no=first.page_no,
+            page_no_end=last.page_no,
+            bbox_list=boxes,
             paragraph_index=first.index,
             paragraph_index_end=last.index,
             char_start=start - first.char_start,
             char_end=end - last.char_start,
             global_char_start=start,
             global_char_end=end,
-            precision=Precision.EXACT,
+            precision=Precision.PARAGRAPH if pdf else Precision.EXACT,
             matched_text=text if len(text) <= 500 else text[:250] + text[-250:],
             matched_text_truncated=len(text) > 500,
             match_method="STRUCT",

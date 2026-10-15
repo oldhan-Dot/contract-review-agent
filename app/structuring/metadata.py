@@ -254,8 +254,8 @@ def _field(
 
 def extract_party_metadata(document: ParsedDocument) -> MetadataResult:
     """只提取四个主体字段；金额、日期等字段保持未识别，不调用模型或数据库。"""
-    if document.source_format != SourceFormat.DOCX:
-        raise ValueError("当前主体提取仅支持 DOCX 解析结果")
+    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
+        raise ValueError("当前主体提取仅支持 DOCX 和文本型 PDF")
     # 1. 划分明确的甲乙方信息区段，保守识别无法还原行列的并列表头。
     sections = _sections(document)
     ambiguous_tables = _ambiguous_tables(sections)

@@ -92,7 +92,7 @@ def test_invalid_or_different_file_id_rejected(value):
 
 
 def test_unsupported_format_explicitly_blocked():
-    parsed = document("测试 PDF 合同").model_copy(update={"source_format": SourceFormat.PDF_TEXT})
+    parsed = document("测试扫描件合同").model_copy(update={"source_format": SourceFormat.PDF_OCR})
     with pytest.raises(ParseBlocked) as error:
         node.structure_document(state(parsed))
     assert error.value.reason == "UNSUPPORTED_FORMAT"

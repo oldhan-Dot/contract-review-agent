@@ -120,7 +120,7 @@ def test_outdated_review_version_is_rejected(node_context):
 def test_unsupported_file_format_is_rejected(node_context, factory):
     state, _ = node_context
     with factory() as session:
-        session.get(ContractFile, state["file_id"]).file_ext = "pdf"
+        session.get(ContractFile, state["file_id"]).file_ext = "txt"
         session.commit()
     with pytest.raises(ParseBlocked) as error:
         node_module.parse_document(state)

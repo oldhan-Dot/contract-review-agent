@@ -1,4 +1,4 @@
-"""手工上传合同并创建待处理任务；本阶段只接收 DOCX。"""
+"""手工上传 DOCX/PDF 合同并创建待处理任务。"""
 
 import hashlib
 import os
@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
 
+import pymupdf
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -56,9 +57,21 @@ def _stage_upload(file: UploadFile, upload_root: Path, max_bytes: int) -> tuple[
                     raise AppError(413, 41301, "单个文件不超过 50MB")
                 target.write(chunk)
                 digest.update(chunk)
-        if size < MIN_FILE_SIZE:
+        extension = Path(file.filename or "").suffix.lower()
+        # 合法短 PDF 可能不足 1KB，由 PDF 结构校验决定，不套用 DOCX 最小体积。
+        if extension == ".pdf":
+            try:
+                # 从受大小限制的缓冲区校验，避免 Windows 下库打开损坏文件失败后
+                # 仍占用临时文件句柄，导致清理异常覆盖原本的 415 错误。
+                with pymupdf.open(stream=staged.read_bytes(), filetype="pdf") as pdf:
+                    if not pdf.is_pdf:
+                        raise AppError(415, 41501, "文件内容不是有效的 PDF")
+            except (pymupdf.FileDataError, pymupdf.EmptyFileError, RuntimeError) as exc:
+                raise AppError(415, 41501, "文件内容不是有效的 PDF") from exc
+        elif size < MIN_FILE_SIZE:
             raise AppError(400, 40001, "文件至少需要 1KB")
-        _check_docx(staged)
+        else:
+            _check_docx(staged)
         return staged, size, digest.hexdigest()
     except Exception:
         if staged is not None:
@@ -71,7 +84,7 @@ def _stage_upload(file: UploadFile, upload_root: Path, max_bytes: int) -> tuple[
     status_code=201,
     response_model=ApiResponse[TaskCreated],
     responses={code: {"model": ErrorResponse} for code in (400, 401, 403, 413, 415, 422)},
-    summary="上传 DOCX 并创建审查任务",
+    summary="上传 DOCX 或 PDF 并创建审查任务",
 )
 def upload_contract(
     identity: Annotated[IdentityHeaders, Depends(parse_identity_headers)],
@@ -91,8 +104,9 @@ def upload_contract(
     original_name = (file.filename or "").replace("\\", "/").split("/")[-1].strip()
     if not original_name or len(original_name) > 255:
         raise AppError(400, 40001, "文件名不能为空且不能超过 255 字符")
-    if Path(original_name).suffix.lower() != ".docx":
-        raise AppError(415, 41501, "当前仅支持 DOCX 文件")
+    extension = Path(original_name).suffix.lower().lstrip(".")
+    if extension not in {"docx", "pdf"}:
+        raise AppError(415, 41501, "当前仅支持 DOCX 和 PDF 文件")
 
     # FastAPI 完成所有表单字段校验后才进入方法，再去数据库确认身份。
     user: AppUser = resolve_user(identity, db)
@@ -122,6 +136,7 @@ def upload_contract(
                 ContractTask.applicant_dept == department,
                 ContractFile.file_md5 == file_md5,
                 ContractFile.file_size == file_size,
+                ContractFile.file_ext == extension,
             )
             .order_by(ContractTask.id.desc())
             .limit(1)
@@ -153,7 +168,7 @@ def upload_contract(
         db.flush()  # 先取得数据库生成的 task_id，文件名才由服务端 ID 构造。
         task_dir = upload_root / str(task.id)
         task_dir.mkdir(parents=True, exist_ok=True)
-        final_path = task_dir / f"{task.id}_1.docx"
+        final_path = task_dir / f"{task.id}_1.{extension}"
         os.replace(staged, final_path)
         db.add(
             ContractFile(
@@ -162,8 +177,12 @@ def upload_contract(
                 storage_path=str(final_path),
                 file_size=file_size,
                 file_md5=file_md5,
-                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                file_ext="docx",
+                mime_type=(
+                    "application/pdf"
+                    if extension == "pdf"
+                    else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                ),
+                file_ext=extension,
                 file_version=1,
             )
         )

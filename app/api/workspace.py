@@ -88,8 +88,8 @@ def workspace_capabilities(user: User):
             "runner": runner.running,
             "llm_configured": settings.llm_enabled
             and bool(settings.llm_api_key.get_secret_value()),
-            "formats": ["DOCX"],
-            "pending": ["PDF/OCR 解析", "分页预览映射", "企业信用实际查询"],
+            "formats": ["DOCX", "PDF_TEXT"],
+            "pending": ["扫描件 OCR 解析", "分页预览映射", "企业信用实际查询"],
             "identity_mode": "预置身份演示，不是正式登录认证",
         }
     )
