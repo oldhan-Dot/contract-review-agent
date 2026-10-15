@@ -1,5 +1,7 @@
 # 模块 06：DOCX 正文与表格读取
 
+> 模块开发记录，保留当时的实现与验证状态。当前需求以 [PRD](../PRD.md) 为准，技术实现以 [Spec](../SPEC.md) 为准；历史章节号不作为当前规范。
+
 新增 `app/parsing/docx_channel.py`，入口为 `parse_docx(path, file_id=...)`，返回上一模块定义的 `ParsedDocument`。本模块直接读取原件，不修改数据库，也不执行其他审查节点。
 
 ## 读取顺序

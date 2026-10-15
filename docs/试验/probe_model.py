@@ -7,7 +7,7 @@ from pathlib import Path
 from time import perf_counter
 
 # 从项目根目录加载配置，密钥只用于请求头，不进入输出和结果文件。
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 import httpx  # noqa: E402
