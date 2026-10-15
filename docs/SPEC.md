@@ -53,6 +53,7 @@ flowchart LR
 | app/parsing | 文件到 ParsedDocument IR，校验文字和位置，不判断法律风险 | FR-05/11 |
 | app/structuring | 条款切分/归类、字段提取、Anchor 证据 | FR-06/07/11 |
 | app/review、app/graph | RuleReviewInput、规则、模型、建议及执行顺序 | FR-08/09/10/15 |
+| app/prompts | 固定指令文本集中存储，通过 load_prompt 按登记名称加载；不承载运行时合同和结果校验 | FR-08/10 |
 | app/services/result_store.py | 节点结果快照、版本保护、完整结果保存 | FR-04/08/09/16 |
 | app/api/workspace.py、app/services/reports.py | 列表、复核、规则配置、数据库内模拟回写、报告 | FR-03/12/13/14/15 |
 | frontend/src/views | 大盘、工作台、规则模板、环境页，调用后端，不替代后端鉴权 | FR-03/04/11～15 |
@@ -215,6 +216,8 @@ sequenceDiagram
 首批 7 条规则位于 engine.CATALOG，固定处理器检查主体、付款验收、责任上限、保密期限、不可抗力通知、保密缺项、大小写金额冲突。管理员可改启停、等级、依据和建议文本，暂不能编辑任意条件。模板建议标 template；现有覆盖不等于 PRD 全部风险已实现。
 
 模型输入合同类型、我方角色及条款，明确合同内容是数据；输出 JSON 风险列表，由 Pydantic 校验，再检查条款编号及对应范围内唯一逐字证据，由程序生成 Anchor。建议标 llm，禁止编造外部信用/法条。当前一次发送全文条款，超过 45,000 字符明确受阻，后续实现分组审查，不能静默截断。未知类别条款仍进入模型候选。
+
+固定系统提示词集中在 `app/prompts/`：正式审查用 `contract_review.txt`，独立探针用 `model_probe.txt`，分别通过 `load_prompt("contract_review")`、`load_prompt("model_probe")` 读取。加载器使用固定目录和名称登记，每次读取 UTF-8，拒绝未知名称或空文本；运行时合同数据继续作为 user 消息传入，结构/证据校验留在代码中。两份提示词输出契约不同，不混用。
 
 模型超时当前默认 25 秒、最多额外重试 1 次，由 Settings 配置；实际 .env 可覆盖，尚未形成性能承诺。未启用/缺密钥为 AI_NOT_CONFIGURED；输出/调用错误为 AI_FAILED；过长为 AI_CONTEXT_LIMIT。用户已告知配置完成，下一轮须重启并实际验证，本文没有执行模型请求或改密钥。
 
