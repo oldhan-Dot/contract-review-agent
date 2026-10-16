@@ -138,7 +138,8 @@ def evaluate_rules(context: RuleReviewInput, rules):
                     RiskItem(
                         **{**base, "risk_type": "METADATA_RISK"},
                         metadata_keys=keys,
-                        risk_reason="缺少身份字段：" + "、".join(key.value for key in keys),
+                        risk_reason="缺少身份字段："
+                        + "、".join(context.metadata.get(key).field_label for key in keys),
                     )
                 )
         elif kind == "amount":
@@ -252,6 +253,8 @@ def evaluate_model(context: RuleReviewInput):
         {
             "contract_type": context.contract_type,
             "our_party_role": context.our_party_role,
+            "source_format": context.document.source_format,
+            "parse_warnings": context.document.quality.warnings,
             "clauses": [
                 {"index": c.index, "text": c.source_text(context.document)} for c in clauses
             ],

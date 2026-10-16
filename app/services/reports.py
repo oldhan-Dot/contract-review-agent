@@ -21,9 +21,16 @@ def markdown_report(task, snapshot):
     ]
     if not payload.get("complete"):
         lines += ["**部分结果：模型审查或其他关键步骤尚未完成，不能作为完整审查结论。**", ""]
+    document = payload.get("document", {})
+    if document:
+        lines += ["## 原件与解析说明", "", f"解析来源：{document.get('source_format', '未知')}"]
+        lines.extend("- " + warning for warning in document.get("quality", {}).get("warnings", []))
+        lines.append("")
     lines += ["## 合同信息", ""]
     for field in payload.get("metadata", {}).get("items", []):
         lines.append(f"- {field['field_label']}：{field.get('field_value') or '未识别'}")
+        if field.get("warnings"):
+            lines.append("  核对提示：" + "；".join(field["warnings"]))
     lines += ["", "## 风险与建议", ""]
     for number, risk in enumerate(result_risks(payload), 1):
         suggestion = human.get("suggestions", {}).get(
@@ -33,6 +40,10 @@ def markdown_report(task, snapshot):
         location = (
             f"段落 {(anchor.get('paragraph_index') or 0) + 1}" if anchor else "缺失项，无原文位置"
         )
+        if anchor.get("page_no"):
+            first, last = anchor["page_no"], anchor.get("page_no_end") or anchor["page_no"]
+            page_label = str(first) if first == last else f"{first}～{last}"
+            location = f"第 {page_label} 页 / {location}"
         lines += [
             f"### {number}. [{risk['risk_level']}] {risk['risk_name']}",
             f"来源：{risk['source']} / {risk.get('rule_code') or '模型研判'} / {location}",

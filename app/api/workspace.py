@@ -20,6 +20,7 @@ from app.core.errors import AppError
 from app.core.security import IdentityHeaders, get_current_user, require_task_access
 from app.models import AppUser, ContractFile, ContractTask, ReviewRuleSetting
 from app.review.engine import CATALOG, rule_catalog
+from app.services.pdf_preview import render_pdf_page
 from app.services.reports import markdown_report, pdf_report
 from app.services.result_store import result_risks, snapshot_for
 from app.services.runner import runner
@@ -88,8 +89,13 @@ def workspace_capabilities(user: User):
             "runner": runner.running,
             "llm_configured": settings.llm_enabled
             and bool(settings.llm_api_key.get_secret_value()),
-            "formats": ["DOCX", "PDF_TEXT"],
-            "pending": ["扫描件 OCR 解析", "分页预览映射", "企业信用实际查询"],
+            # 仅暴露非敏感运行参数，便于核对终端环境变量是否覆盖 .env。
+            "llm_timeout_seconds": settings.llm_timeout_seconds,
+            "llm_max_retries": settings.llm_max_retries,
+            "formats": ["DOCX", "PDF_TEXT", "PDF_OCR", "IMAGE_OCR"],
+            "ocr_configured": settings.mineru_enabled
+            and bool(settings.mineru_api_token.get_secret_value()),
+            "pending": ["多图片合并合同", "Word 转换预览映射", "企业信用实际查询"],
             "identity_mode": "预置身份演示，不是正式登录认证",
         }
     )
@@ -170,6 +176,44 @@ def original_file(task: Task, db: Db):
     if not file or not Path(file.storage_path).is_file():
         raise AppError(404, 40401, "原件不存在")
     return FileResponse(file.storage_path, filename=file.original_name, media_type=file.mime_type)
+
+
+@router.get("/tasks/{task_id}/pages/{page_no}")
+def pdf_page(
+    task: Task,
+    db: Db,
+    page_no: int,
+    review_version: int = Query(gt=0),
+    file_id: int = Query(gt=0),
+    scale: float = Query(default=1.5, ge=0.5, le=2),
+):
+    """先检查权限、快照和文件版本，再提供原 PDF 页面，防止旧证据叠到新原件。"""
+    snapshot = snapshot_for(db, task)
+    document = snapshot.payload.get("document", {}) if snapshot else {}
+    if task.review_version != review_version or document.get("file_id") != file_id:
+        raise AppError(409, 40901, "预览版本已改变，请刷新审查结果")
+    if document.get("source_format") not in {"PDF_TEXT", "PDF_OCR", "IMAGE_OCR"}:
+        raise AppError(409, 40901, "当前原件没有可用的 PDF 预览")
+    file = db.scalar(
+        select(ContractFile).where(
+            ContractFile.id == file_id,
+            ContractFile.task_id == task.id,
+            ContractFile.file_ext.in_(["pdf", "png", "jpg", "jpeg"]),
+        )
+    )
+    latest = db.scalar(
+        select(ContractFile.id)
+        .where(ContractFile.task_id == task.id)
+        .order_by(
+            ContractFile.file_version.desc(),
+            ContractFile.id.desc(),
+        )
+        .limit(1)
+    )
+    if file is None or file.id != latest:
+        raise AppError(409, 40901, "原件版本已改变，请重新审查")
+    image = render_pdf_page(file.storage_path, page_no, scale, file.file_md5)
+    return Response(image, media_type="image/png", headers={"Cache-Control": "private, no-store"})
 
 
 class RetryRequest(BaseModel):

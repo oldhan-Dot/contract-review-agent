@@ -21,7 +21,7 @@ def check_db() -> dict:
 async def check_llm() -> dict:
     settings = get_settings()
     if not settings.llm_enabled:
-        return {"status": "disabled", "message": "待配置模型服务，当前仅运行环境骨架"}
+        return {"status": "disabled", "message": "模型审查未启用；可查看规则初筛，无法确认完整审查"}
     if not settings.llm_api_key.get_secret_value():
         return {"status": "error", "message": "尚未配置 LLM_API_KEY"}
     try:
@@ -51,7 +51,7 @@ async def check_mineru() -> dict:
     if not settings.mineru_health_path:
         return {
             "status": "unverified",
-            "message": "MinerU 地址和 Token 已配置，解析接口待接入验证",
+            "message": "MinerU 云解析适配已接入；此检查仅确认配置，实际解析结果请查看任务",
         }
     try:
         async with httpx.AsyncClient(timeout=5) as client:
@@ -72,9 +72,12 @@ async def health_report() -> dict:
     db, llm, mineru = await asyncio.gather(asyncio.to_thread(check_db), check_llm(), check_mineru())
     return {
         "status": "ok" if db["status"] == "ok" else "error",
-        "phase": "environment-setup",
+        "phase": "demo-workspace",
         "db": db,
         "llm": llm,
         "mineru": mineru,
-        "approval": {"status": "pending", "message": "Mock 审批业务接口尚未实现"},
+        "approval": {
+            "status": "configured",
+            "message": "数据库内模拟审批评论已接入；需要数据库可用及法务确认，不连接外部审批平台",
+        },
     }

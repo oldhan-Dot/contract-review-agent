@@ -4,10 +4,10 @@ import { onMounted, ref } from 'vue'
 const report = ref(null)
 const error = ref('')
 const loading = ref(false)
-const names = { db: 'MySQL 数据库', llm: '模型服务', mineru: 'MinerU 文档解析', approval: '审批 Mock' }
+const names = { db: 'MySQL 数据库', llm: '模型服务', mineru: 'MinerU 文档解析', approval: '模拟审批' }
 const labels = {
   ok: '可用', error: '连接异常', disabled: '待配置',
-  reachable: '连接可用，功能待验证', unverified: '待验证', pending: '待实现',
+  reachable: '连接可用，功能待验证', unverified: '待验证', pending: '待实现', configured: '已配置',
 }
 
 async function refresh() {
@@ -20,7 +20,7 @@ async function refresh() {
     report.value = body
   } catch {
     report.value = null
-    error.value = '后端尚未连接，请确认后端已在 8000 端口启动。'
+    error.value = '后端尚未连接，请确认服务已启动，且前端代理指向实际后端端口。'
   } finally {
     loading.value = false
   }

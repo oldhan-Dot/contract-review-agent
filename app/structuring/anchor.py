@@ -129,8 +129,13 @@ class Anchor(BaseModel):
         anchor_type: Literal["clause", "metadata"] = "metadata",
     ) -> Anchor:
         """按已知文字区间构造 DOCX/PDF 证据；PDF 坐标只声明行/段落精度。"""
-        if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
-            raise ValueError("当前原文位置构造仅支持 DOCX 和文本型 PDF")
+        if document.source_format not in (
+            SourceFormat.DOCX,
+            SourceFormat.PDF_TEXT,
+            SourceFormat.PDF_OCR,
+            SourceFormat.IMAGE_OCR,
+        ):
+            raise ValueError("当前原文位置构造支持 DOCX、文本 PDF、扫描 PDF 和图片 OCR 解析结果")
         text = document.slice_text(start, end)
         if not text:
             raise ValueError("原文证据区间不能为空")
@@ -138,7 +143,11 @@ class Anchor(BaseModel):
         last = next((p for p in document.paragraphs if p.char_start < end <= p.char_end), None)
         if first is None or last is None:
             raise ValueError("原文区间起止位置必须位于实际段落内")
-        pdf = document.source_format == SourceFormat.PDF_TEXT
+        pdf = document.source_format in (
+            SourceFormat.PDF_TEXT,
+            SourceFormat.PDF_OCR,
+            SourceFormat.IMAGE_OCR,
+        )
         boxes = []
         # 跨页不把多页矩形合成一个框；保留起止页/段落，后续预览按段落取各页行框。
         if pdf and first.page_no == last.page_no:
@@ -166,6 +175,6 @@ class Anchor(BaseModel):
             precision=Precision.PARAGRAPH if pdf else Precision.EXACT,
             matched_text=text if len(text) <= 500 else text[:250] + text[-250:],
             matched_text_truncated=len(text) > 500,
-            match_method="STRUCT",
+            match_method="OCR_BOX" if document.channel == "ocr" else "STRUCT",
         )
         return anchor.validate_against_document(document)

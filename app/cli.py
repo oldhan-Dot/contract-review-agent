@@ -39,7 +39,7 @@ def init_db() -> None:
         tables = connection.execute(text("SHOW TABLES")).all()
         users = connection.scalar(text("SELECT COUNT(*) FROM app_user"))
     print(f"数据库初始化完成：{len(tables)} 张表，{users} 个预置用户。")
-    print("审查规则、示范条款与示例审批单待业务模块实现后导入。")
+    print("首批规则与示范文本由代码提供；模拟审批单在法务演示回写时自动关联。")
 
 
 def main() -> None:

@@ -32,6 +32,7 @@ export async function loadIdentities() {
 }
 
 export const statusNames = { pending: '等待处理', parsing: '解析中', reviewing: '审查中', blocked: '处理受阻', completed: '审查完成' }
+export const stageNames = { parse_document: '文档解析', structure_document: '条款和字段整理', rule_review: '规则检查', ai_review: 'AI 审查', save_results: '保存结果' }
 export const levelNames = { HIGH: '高风险', MEDIUM: '中风险', LOW: '低风险' }
 export const typeNames = { PURCHASE: '采购合同', SALES: '销售合同', SERVICE: '服务合同', LABOR: '劳动合同', UNKNOWN: '未分类' }
 

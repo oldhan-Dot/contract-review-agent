@@ -170,9 +170,26 @@ def _field(document, key, candidate, value, warnings, raw):
 
 def extract_money_metadata(document: ParsedDocument) -> MetadataResult:
     """数字金额优先，大写金额兜底；缺失和冲突作为字段提示返回。"""
-    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
-        raise ValueError("当前金额提取仅支持 DOCX 和文本型 PDF")
+    if document.source_format not in (
+        SourceFormat.DOCX,
+        SourceFormat.PDF_TEXT,
+        SourceFormat.PDF_OCR,
+        SourceFormat.IMAGE_OCR,
+    ):
+        raise ValueError("当前金额提取支持 DOCX、文本 PDF、扫描 PDF 和图片 OCR 解析结果")
     candidates = _candidates(document)
+    # OCR 可能把 100000.00 识别为“1 0 0 0 0 0 . 0 0”。不能把第一个 1 当总金额，
+    # 也不静默删空格猜值；保留原识别文字，标为待人工核对。
+    fragmented = (
+        list(re.finditer(r"[0-9０-９](?:[ \t]+[0-9０-９])+[ \t0-9０-９.．]*", document.full_text))
+        if document.source_format in (SourceFormat.PDF_OCR, SourceFormat.IMAGE_OCR)
+        else []
+    )
+    candidates = [
+        item
+        for item in candidates
+        if not any(item.start < match.end() and item.end > match.start() for match in fragmented)
+    ]
     numeric = next((item for item in candidates if not item.words), None)
     chinese = next(
         (
@@ -184,6 +201,8 @@ def extract_money_metadata(document: ParsedDocument) -> MetadataResult:
     )
     chosen = numeric or chinese
     warnings = []
+    if fragmented:
+        warnings.append("OCR 数字存在拆分空格，相关候选不作为标准金额，请对照原件核对")
     if chosen is None:
         warnings.append("未识别合同总金额，请人工补充")
     elif chosen.value is None or not Decimal(0) < chosen.value <= Decimal(10**12):

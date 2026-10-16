@@ -9,7 +9,7 @@ from docx import Document
 from app.graph.review_graph import ReviewNodes, build_review_graph
 from app.parsing.docx_channel import parse_docx
 from app.parsing.exceptions import ParseBlocked
-from app.parsing.ir import ParsedDocument, SourceFormat
+from app.parsing.ir import ParsedDocument
 from app.structuring.metadata_models import MetadataResult
 from app.structuring.models import ClauseType
 
@@ -92,7 +92,7 @@ def test_invalid_or_different_file_id_rejected(value):
 
 
 def test_unsupported_format_explicitly_blocked():
-    parsed = document("测试扫描件合同").model_copy(update={"source_format": SourceFormat.PDF_OCR})
+    parsed = document("测试未知格式合同").model_copy(update={"source_format": "UNSUPPORTED"})
     with pytest.raises(ParseBlocked) as error:
         node.structure_document(state(parsed))
     assert error.value.reason == "UNSUPPORTED_FORMAT"

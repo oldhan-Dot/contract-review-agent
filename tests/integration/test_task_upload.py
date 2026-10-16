@@ -103,6 +103,25 @@ def send(client, user_id, content, filename="合同.docx", **fields):
     )
 
 
+@pytest.mark.parametrize("extension,mime", [("png", "image/png"), ("jpg", "image/jpeg")])
+def test_image_upload_preserves_original_and_mime(upload_client, extension, mime):
+    client, factory, root, user_id = upload_client
+    with pymupdf.open() as pdf:
+        page = pdf.new_page(width=300, height=400)
+        page.insert_text((20, 50), "Synthetic image upload", fontsize=10)
+        content = page.get_pixmap().tobytes("png" if extension == "png" else "jpeg")
+    response = send(client, user_id, content, filename=f"contract.{extension}")
+    assert response.status_code == 201, response.text
+    task_id = response.json()["data"]["task_id"]
+    with factory() as db:
+        file = db.scalar(select(ContractFile).where(ContractFile.task_id == task_id))
+        assert file.file_ext == extension and file.mime_type == mime
+    assert (root / "uploads" / str(task_id) / f"{task_id}_1.{extension}").read_bytes() == content
+    repeat = send(client, user_id, content, filename=f"contract.{extension}")
+    assert repeat.json()["data"]["task_id"] == task_id
+    assert repeat.json()["data"]["duplicated"]
+
+
 def test_valid_upload_and_duplicate_reuse(upload_client):
     client, factory, root, user_id = upload_client
     content = docx_bytes()

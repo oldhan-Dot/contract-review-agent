@@ -21,8 +21,15 @@ def structure_document(state: ReviewState) -> dict[str, list[Clause] | MetadataR
         raise ValueError("file_id 必须是数据库范围内的正整数")
     if document.file_id != file_id:
         raise ValueError("document 的文件 ID 与本次执行的 file_id 不一致")
-    if document.source_format not in (SourceFormat.DOCX, SourceFormat.PDF_TEXT):
-        raise ParseBlocked("UNSUPPORTED_FORMAT", "当前结构化节点仅支持 DOCX 和文本型 PDF")
+    if document.source_format not in (
+        SourceFormat.DOCX,
+        SourceFormat.PDF_TEXT,
+        SourceFormat.PDF_OCR,
+        SourceFormat.IMAGE_OCR,
+    ):
+        raise ParseBlocked(
+            "UNSUPPORTED_FORMAT", "当前结构化节点支持 DOCX、文本 PDF、扫描 PDF 和图片 OCR 解析结果"
+        )
     task_name = state.get("task_name")
     if task_name is not None and not isinstance(task_name, str):
         raise ValueError("task_name 必须是字符串")

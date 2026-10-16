@@ -10,6 +10,11 @@ BlockReason = Literal[
     "PARSE_ERROR",
     "UNSUPPORTED_FORMAT",
     "OCR_REQUIRED",
+    "OCR_NOT_CONFIGURED",
+    "OCR_FAILED",
+    "OCR_TIMEOUT",
+    "OCR_RESULT_INVALID",
+    "IMAGE_TOO_LARGE",
 ]
 
 

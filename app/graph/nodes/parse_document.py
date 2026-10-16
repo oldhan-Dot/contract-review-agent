@@ -9,7 +9,9 @@ from app.graph.state import ReviewState
 from app.models import ContractFile, ContractTask
 from app.parsing.docx_channel import parse_docx
 from app.parsing.exceptions import ParseBlocked
+from app.parsing.image_channel import parse_image
 from app.parsing.ir import ParsedDocument
+from app.parsing.ocr_channel import parse_scanned_pdf
 from app.parsing.pdf_channel import parse_pdf
 from app.review.context import ContractType, OurPartyRole
 
@@ -61,12 +63,24 @@ def parse_document(state: ReviewState) -> dict[str, ParsedDocument | str]:
         storage_path, file_ext = record.storage_path, record.file_ext
     # 数据库会话到此关闭，读取文件期间不持有事务，也不把 Session 放进共享状态。
 
-    # 2. 按格式调用解析器；PDF 缺少可靠文本时受阻，后续接 OCR 通道。
-    parsers = {"docx": parse_docx, "pdf": parse_pdf}
+    # 2. 按格式调用解析器；图片直接 OCR，PDF 缺少可靠文本时分流 OCR。
+    parsers = {
+        "docx": parse_docx,
+        "pdf": parse_pdf,
+        "png": parse_image,
+        "jpg": parse_image,
+        "jpeg": parse_image,
+    }
     parser = parsers.get(file_ext.lower())
     if parser is None:
-        raise ParseBlocked("UNSUPPORTED_FORMAT", "当前解析节点仅支持 DOCX 和文本型 PDF")
-    document = parser(storage_path, file_id=state["file_id"])
+        raise ParseBlocked("UNSUPPORTED_FORMAT", "当前解析节点支持 DOCX、PDF 和 PNG/JPEG 图片")
+    try:
+        document = parser(storage_path, file_id=state["file_id"])
+    except ParseBlocked as exc:
+        # 只有确定需要 OCR 时才上传云端；加密、损坏等失败不能盲目当扫描件。
+        if file_ext.lower() != "pdf" or exc.reason != "OCR_REQUIRED":
+            raise
+        document = parse_scanned_pdf(storage_path, file_id=state["file_id"])
 
     # 3. 返回增量状态；LangGraph 合并后交给 structure_document 节点。
     # 解析失败时抛出 ParseBlocked，由执行器处理 blocked 和错误展示。

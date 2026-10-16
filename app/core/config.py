@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     mineru_api_token: SecretStr = SecretStr("")
     mineru_health_path: str = ""
     mineru_timeout_seconds: int = 90
+    mineru_task_timeout_seconds: int = Field(default=180, ge=10, le=480)
+    mineru_poll_interval_seconds: float = Field(default=2, ge=0.1, le=10)
     mineru_min_avg_confidence: float = Field(default=0.85, ge=0, le=1)
     mineru_render_dpi: int = Field(default=200, gt=0)
     approval_mode: str = "mock"

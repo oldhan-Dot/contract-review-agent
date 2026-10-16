@@ -1,4 +1,4 @@
-"""手工上传 DOCX/PDF 合同并创建待处理任务。"""
+"""手工上传 DOCX、PDF 或 PNG/JPEG 合同并创建待处理任务。"""
 
 import hashlib
 import os
@@ -19,6 +19,8 @@ from app.core.db import get_db
 from app.core.errors import AppError
 from app.core.security import IdentityHeaders, parse_identity_headers, resolve_user
 from app.models import AppUser, ContractFile, ContractTask
+from app.parsing.exceptions import ParseBlocked
+from app.parsing.image_channel import IMAGE_EXTENSIONS, image_as_pdf
 from app.schemas.common import ApiResponse, ErrorResponse
 from app.schemas.task import TaskCreated
 
@@ -59,7 +61,13 @@ def _stage_upload(file: UploadFile, upload_root: Path, max_bytes: int) -> tuple[
                 digest.update(chunk)
         extension = Path(file.filename or "").suffix.lower()
         # 合法短 PDF 可能不足 1KB，由 PDF 结构校验决定，不套用 DOCX 最小体积。
-        if extension == ".pdf":
+        if extension.lstrip(".") in IMAGE_EXTENSIONS:
+            try:
+                image_as_pdf(staged.read_bytes(), extension.lstrip("."))
+            except ParseBlocked as exc:
+                status = 413 if exc.reason == "IMAGE_TOO_LARGE" else 415
+                raise AppError(status, 41301 if status == 413 else 41501, exc.detail) from None
+        elif extension == ".pdf":
             try:
                 # 从受大小限制的缓冲区校验，避免 Windows 下库打开损坏文件失败后
                 # 仍占用临时文件句柄，导致清理异常覆盖原本的 415 错误。
@@ -84,7 +92,7 @@ def _stage_upload(file: UploadFile, upload_root: Path, max_bytes: int) -> tuple[
     status_code=201,
     response_model=ApiResponse[TaskCreated],
     responses={code: {"model": ErrorResponse} for code in (400, 401, 403, 413, 415, 422)},
-    summary="上传 DOCX 或 PDF 并创建审查任务",
+    summary="上传 DOCX、PDF 或 PNG/JPEG 并创建审查任务",
 )
 def upload_contract(
     identity: Annotated[IdentityHeaders, Depends(parse_identity_headers)],
@@ -105,8 +113,8 @@ def upload_contract(
     if not original_name or len(original_name) > 255:
         raise AppError(400, 40001, "文件名不能为空且不能超过 255 字符")
     extension = Path(original_name).suffix.lower().lstrip(".")
-    if extension not in {"docx", "pdf"}:
-        raise AppError(415, 41501, "当前仅支持 DOCX 和 PDF 文件")
+    if extension not in {"docx", "pdf", *IMAGE_EXTENSIONS}:
+        raise AppError(415, 41501, "当前支持 DOCX、PDF、PNG、JPG、JPEG 文件")
 
     # FastAPI 完成所有表单字段校验后才进入方法，再去数据库确认身份。
     user: AppUser = resolve_user(identity, db)
@@ -178,9 +186,15 @@ def upload_contract(
                 file_size=file_size,
                 file_md5=file_md5,
                 mime_type=(
-                    "application/pdf"
-                    if extension == "pdf"
-                    else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    {
+                        "pdf": "application/pdf",
+                        "png": "image/png",
+                        "jpg": "image/jpeg",
+                        "jpeg": "image/jpeg",
+                    }.get(
+                        extension,
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    )
                 ),
                 file_ext=extension,
                 file_version=1,

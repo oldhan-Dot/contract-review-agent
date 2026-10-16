@@ -29,7 +29,7 @@ async function load() {
 function filter() { page.value = 1; load() }
 async function upload() {
   error.value = ''
-  if (!file.value || !form.value.our_party_role) { error.value = '请选择 DOCX 或文本型 PDF，并明确我方角色。'; return }
+  if (!file.value || !form.value.our_party_role) { error.value = '请选择 DOCX、PDF 或 PNG/JPG 图片，并明确我方角色。'; return }
   sending.value = true
   try {
     const data = new FormData()
@@ -57,7 +57,7 @@ onUnmounted(() => clearInterval(interval))
 
 <template>
   <main class="page dashboard">
-    <div class="page-heading"><div><div class="eyebrow">合同全流程管理</div><h1>合同审查大盘</h1><p>提交合同、跟踪审查进度，在一个工作空间完成风险复核。</p></div>
+    <div class="page-heading"><div><div class="eyebrow">合同全流程管理</div><h1>合同审查大盘</h1><p>上传合同 → 自动审查 → 法务核对确认 → 导出报告 / 演示回写</p></div>
       <div class="actions" v-if="identity.role === 'BIZ'"><button class="button secondary" :disabled="sending" @click="demo">体验合成样例</button><button class="button primary" @click="showUpload = true">＋ 上传合同</button></div>
     </div>
     <div v-if="error" class="notice error" role="alert">{{ error }}</div>
@@ -66,15 +66,15 @@ onUnmounted(() => clearInterval(interval))
     <div v-if="capabilities && !capabilities.runner" class="notice error">后台执行器未就绪，任务会保留等待状态。请检查环境状态。</div>
     <section class="panel task-panel">
       <div class="panel-heading"><h2>审查任务 <span class="count">{{ total }}</span></h2><button class="text-button" @click="load">↻ 刷新</button></div>
-      <div class="filter-bar"><select v-model="status" @change="filter"><option value="">全部审查状态</option><option v-for="(label, key) in statusNames" :key="key" :value="key">{{ label }}</option></select><select v-model="level" @change="filter"><option value="">全部风险等级</option><option v-for="(label, key) in levelNames" :key="key" :value="key">{{ label }}</option></select><span class="muted filter-note">每 4 秒自动更新处理状态</span></div>
+      <div class="filter-bar"><select v-model="status" @change="filter"><option value="">全部审查状态</option><option v-for="(label, key) in statusNames" :key="key" :value="key">{{ label }}</option></select><select v-model="level" @change="filter"><option value="">全部风险等级</option><option v-for="(label, key) in levelNames" :key="key" :value="key">{{ label }}</option></select><span class="muted filter-note">处理状态自动更新</span></div>
       <div class="table-scroll"><table class="task-table"><thead><tr><th>合同名称 / 编号</th><th>业务类型</th><th>申请人</th><th>合同金额</th><th>审查状态</th><th>已识别风险</th><th>创建时间</th><th></th></tr></thead>
         <tbody><tr v-for="task in rows" :key="task.id" @click="router.push(`/tasks/${task.id}`)"><td class="contract-cell"><span class="file-symbol">文</span><div><strong>{{ task.contract_name }}</strong><small>{{ task.task_no }}</small></div></td><td>{{ typeNames[task.contract_type] || task.contract_type }}</td><td>{{ task.applicant }}</td><td class="amount">{{ task.amount ? `${task.currency || ''} ${Number(task.amount).toLocaleString('zh-CN')}` : '待提取' }}</td><td><span class="status-pill" :class="task.status"><i></i>{{ statusNames[task.status] || task.status }}</span></td><td><span v-if="task.overall_risk_level" class="risk-pill" :class="task.overall_risk_level">{{ levelNames[task.overall_risk_level] }}</span><span v-else class="muted">—</span></td><td class="small muted">{{ date(task.created_at) }}</td><td><button class="text-button">查看 →</button></td></tr></tbody></table></div>
-      <div v-if="!rows.length" class="empty-state"><div class="empty-symbol">▤</div><h3>还没有符合条件的合同</h3><p>{{ identity.role === 'BIZ' ? '上传 DOCX 或文本型 PDF，或使用合成样例体验审查流程。' : '切换为业务演示身份上传合同，任务将在这里显示。' }}</p></div>
+      <div v-if="!rows.length" class="empty-state"><div class="empty-symbol">▤</div><h3>还没有符合条件的合同</h3><p>{{ identity.role === 'BIZ' ? '上传合同文档或单张图片，或使用合成样例体验审查流程。' : '切换为业务演示身份上传合同，任务将在这里显示。' }}</p></div>
       <div class="pagination"><span>共 {{ total }} 条任务</span><div><button class="button secondary small-button" :disabled="page <= 1" @click="page--; load()">上一页</button><span>{{ page }}</span><button class="button secondary small-button" :disabled="page * 10 >= total" @click="page++; load()">下一页</button></div></div>
     </section>
-    <div class="dashboard-foot"><span>支持 DOCX / 文本型 PDF · 原件与证据保留 · 审查意见需法务确认</span><span>扫描件 OCR 与原件分页预览待补齐</span></div>
+    <div class="dashboard-foot"><span>支持 DOCX / PDF / PNG / JPG · 原件与证据保留 · 审查意见需法务确认</span><span>图片/扫描件使用 MinerU · Word 转换预览待补齐</span></div>
     <div v-if="showUpload" class="modal-backdrop" @click.self="showUpload = false"><form class="modal upload-modal" @submit.prevent="upload"><div class="modal-heading"><h2>提交合同审查</h2><button type="button" class="icon-button" @click="showUpload = false">×</button></div><p class="muted">明确合同类型和我方角色，名称及金额由系统尝试提取。</p>
-      <label class="upload-drop"><span class="upload-symbol">↑</span><strong>{{ file?.name || '选择 DOCX 或 PDF 合同文件' }}</strong><small>支持 DOCX / 文本型 PDF，最大 50 MB；扫描件 OCR 待接入</small><input type="file" accept=".docx,.pdf" @change="file = $event.target.files[0]" required /></label>
+      <label class="upload-drop"><span class="upload-symbol">↑</span><strong>{{ file?.name || '选择合同文档或图片' }}</strong><small>支持 DOCX / PDF / PNG / JPG，最大 50 MB；图片/扫描件需配置 MinerU；单图不超过 2500 万像素</small><input type="file" accept=".docx,.pdf,.png,.jpg,.jpeg" @change="file = $event.target.files[0]" required /></label>
       <div class="form-grid"><label>合同类型<select v-model="form.contract_type"><option v-for="(label, key) in typeNames" v-show="key !== 'UNKNOWN'" :key="key" :value="key">{{ label }}</option></select></label><label>我方角色<select v-model="form.our_party_role" required><option value="" disabled>请明确选择</option><option value="A">我方是甲方</option><option value="B">我方是乙方</option></select></label></div><label>合同名称 <span class="muted">可选</span><input v-model="form.contract_name" maxlength="255" placeholder="留空后从正文提取" /></label><label>送审部门 <span class="muted">可选</span><input v-model="form.applicant_dept" maxlength="64" placeholder="例如：采购部" /></label><div v-if="error" class="notice error">{{ error }}</div><div class="modal-actions"><button type="button" class="button secondary" @click="showUpload = false">取消</button><button class="button primary" :disabled="sending">{{ sending ? '上传中…' : '提交并开始审查' }}</button></div>
     </form></div>
   </main>
